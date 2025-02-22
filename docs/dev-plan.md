@@ -163,34 +163,34 @@ This project implements a global thermonuclear war simulation game inspired by t
 Manual Testing Checklist:
 
 1. Development Environment:
-   - [ ] `npm start` successfully launches React frontend on port 5100
-   - [ ] `uvicorn` successfully launches FastAPI backend on port 5200
-   - [ ] Frontend can communicate with backend through proxy
-   - [ ] Environment variables are properly loaded
+   - [x] `cd frontend ; npm start` successfully launches React frontend on port 5100
+   - [x] `cd backend ; python -m app.main` successfully launches FastAPI backend on port 5200
+   - [x] Frontend can communicate with backend through proxy
+   - [x] Environment variables are properly loaded
 
 2. Database Operations:
-   - [ ] SQLite database file is created in correct location
-   - [ ] Can manually connect to database using SQLite client
-   - [ ] Basic tables are created with correct schema
-   - [ ] Can perform manual INSERT/SELECT operations
+   - [x] SQLite database file is created in correct location
+   - [x] Can manually connect to database using SQLite client
+   - [x] Basic tables are created with correct schema
+   - [x] Can perform manual INSERT/SELECT operations
 
 3. API Endpoints:
-   - [ ] Health check endpoint returns 200 OK
-   - [ ] Invalid endpoints return proper 404 error
-   - [ ] Error responses follow standardized format
-   - [ ] CORS headers allow frontend access
+   - [x] Health check endpoint returns 200 OK
+   - [x] Invalid endpoints return proper 404 error
+   - [x] Error responses follow standardized format
+   - [x] CORS headers allow frontend access
 
 4. Frontend Features:
-   - [ ] Application loads without console errors
+   - [x] Application loads without console errors
    - [ ] Basic navigation works between placeholder pages
-   - [ ] API errors are displayed to user
-   - [ ] Browser dev tools show proper API communication
+   - [x] API errors are displayed to user
+   - [x] Browser dev tools show proper API communication
 
 5. Integration:
-   - [ ] Frontend successfully calls backend health check
-   - [ ] Database operations from API work end-to-end
+   - [x] Frontend successfully calls backend health check
+   - [x] Database operations from API work end-to-end
    - [ ] Error handling works across all layers
-   - [ ] All components can run simultaneously without conflicts
+   - [x] All components can run simultaneously without conflicts
 
 ## Phase 2: Authentication
 - OAuth implementation (Google only)
