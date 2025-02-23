@@ -6,16 +6,27 @@ from app.core import settings
 from app.core.database import get_db
 from app.models import Configuration
 from sqlalchemy import select
+from app.api.v1 import auth  # Import the auth router
 
-app = FastAPI(title=settings.PROJECT_NAME)
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+)
 
-# Update CORS middleware to match React's port
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5100"],  # React frontend
+    allow_origins=["http://localhost:5100"],  # Frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+# Include the auth router
+app.include_router(
+    auth.router,
+    prefix=settings.API_V1_STR,
+    tags=["auth"]
 )
 
 @app.get("/")

@@ -5,6 +5,11 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "My FastAPI App"
     PORT: int = 5200
     
+    # OAuth settings
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
+    JWT_SECRET: str
+
     class Config:
         case_sensitive = True
         env_file = ".env"
