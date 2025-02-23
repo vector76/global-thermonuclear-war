@@ -26,7 +26,7 @@ async def google_login():
     )
     return {"authorization_url": authorization_url}
 
-@router.get("/auth/google/callback")
+@router.get("/google/callback")
 async def google_callback(
     code: str,
     db: AsyncSession = Depends(get_db)

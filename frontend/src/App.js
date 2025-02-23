@@ -14,6 +14,7 @@ import './styles/Legal.css';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Check authentication status on load
@@ -27,6 +28,7 @@ function App() {
         const data = await response.json();
         setIsAuthenticated(true);
         setUserEmail(data.email);
+        setIsAdmin(data.is_admin);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -36,12 +38,16 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <Navigation isAuthenticated={isAuthenticated} userEmail={userEmail} />
+        <Navigation 
+          isAuthenticated={isAuthenticated} 
+          userEmail={userEmail}
+          isAdmin={isAdmin}
+        />
         <main>
           <Routes>
             <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} />
             <Route path="/login" element={<Login isAuthenticated={isAuthenticated} />} />
-            <Route path="/admin" element={<Admin isAuthenticated={isAuthenticated} />} />
+            <Route path="/admin" element={<Admin isAuthenticated={isAuthenticated} isAdmin={isAdmin} />} />
             <Route path="/api-docs" element={<ApiDocs />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />

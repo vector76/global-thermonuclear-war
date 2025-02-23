@@ -7,10 +7,13 @@ function Login() {
 
   const handleGoogleLogin = async () => {
     try {
-      const response = await fetch('/api/v1/login/google');
+      const response = await fetch('/api/v1/auth/login/google');
       const data = await response.json();
-      // Redirect to Google's OAuth page
-      window.location.href = data.authorization_url;
+      if (data.authorization_url) {
+        window.location.href = data.authorization_url;
+      } else {
+        setError('Failed to get authorization URL');
+      }
     } catch (err) {
       setError('Failed to initiate login: ' + err.message);
     }

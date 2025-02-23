@@ -10,6 +10,7 @@
   display: flex;
   justify-content: center;
   gap: 2rem;
+  align-items: center;
 }
 
 .main-nav a {
@@ -17,9 +18,31 @@
   text-decoration: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: normal;
+  display: block;
 }
 
 .main-nav a:hover {
+  background-color: #4fa8c7;
+}
+
+.main-nav button {
+  background: none;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  border-radius: 4px;
+  line-height: normal;
+  display: block;
+  margin: 0;
+}
+
+.main-nav button:hover {
   background-color: #4fa8c7;
 }
 
