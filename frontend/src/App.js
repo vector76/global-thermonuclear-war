@@ -10,6 +10,7 @@ import Terms from './pages/Terms';
 import './App.css';
 import './styles/Navigation.css';
 import './styles/Legal.css';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -47,7 +48,14 @@ function App() {
           <Routes>
             <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} />
             <Route path="/login" element={<Login isAuthenticated={isAuthenticated} />} />
-            <Route path="/admin" element={<Admin isAuthenticated={isAuthenticated} isAdmin={isAdmin} />} />
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute isAuthenticated={isAuthenticated} isAdmin={isAdmin}>
+                  <Admin />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/api-docs" element={<ApiDocs />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />
