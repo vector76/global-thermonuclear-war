@@ -6,7 +6,7 @@ from app.core import settings
 from app.core.database import get_db
 from app.models import Configuration
 from sqlalchemy import select
-from app.api.v1 import auth  # Import the auth router
+from app.api.v1 import auth, router as api_v1_router  # Import the auth router and the new router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -28,6 +28,9 @@ app.include_router(
     prefix=settings.API_V1_STR,
     tags=["auth"]
 )
+
+# Include the new router
+app.include_router(api_v1_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():

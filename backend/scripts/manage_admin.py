@@ -4,12 +4,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 sys.path.append(".")  # Allow importing from parent directory
 
-from app.core.database import async_engine, Base, get_db
+from app.core.database import engine, Base
 from app.models.user import User
 
 async def create_tables():
     """Create database tables if they don't exist"""
-    async with async_engine.begin() as conn:
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
 async def list_users(db: AsyncSession):
@@ -27,27 +27,26 @@ async def list_users(db: AsyncSession):
 
 async def set_admin_status(email: str, is_admin: bool):
     """Set or clear admin status for a user"""
-    async with async_engine.begin() as conn:
-        async with AsyncSession(conn) as db:
-            # Find user
-            result = await db.execute(
-                select(User).where(User.email == email)
-            )
-            user = result.scalar_one_or_none()
-            
-            if not user:
-                print(f"Error: No user found with email {email}")
-                return
-            
-            # Update admin status
-            user.is_admin = is_admin
-            await db.commit()
-            
-            action = "set as admin" if is_admin else "removed from admin"
-            print(f"\nUser {email} {action}")
-            
-            # Show all users
-            await list_users(db)
+    async with AsyncSession(engine) as db:
+        # Find user
+        result = await db.execute(
+            select(User).where(User.email == email)
+        )
+        user = result.scalar_one_or_none()
+        
+        if not user:
+            print(f"Error: No user found with email {email}")
+            return
+        
+        # Update admin status
+        user.is_admin = is_admin
+        await db.commit()
+        
+        action = "set as admin" if is_admin else "removed from admin"
+        print(f"\nUser {email} {action}")
+        
+        # Show all users
+        await list_users(db)
 
 def print_usage():
     print("""
@@ -75,7 +74,7 @@ async def main():
     command = sys.argv[1].lower()
     
     if command == 'list':
-        async with async_engine.begin() as conn:
+        async with engine.begin() as conn:
             async with AsyncSession(conn) as db:
                 await list_users(db)
         return

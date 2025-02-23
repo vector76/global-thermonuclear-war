@@ -4,6 +4,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "My FastAPI App"
     PORT: int = 5200
+    DATABASE_URL: str = "sqlite+aiosqlite:///./app.db"
     
     # OAuth settings
     GOOGLE_CLIENT_ID: str
