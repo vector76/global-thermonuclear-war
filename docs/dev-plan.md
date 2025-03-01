@@ -193,21 +193,21 @@ Manual Testing Checklist:
    - [x] All components can run simultaneously without conflicts
 
 ## Phase 2: Authentication
-- OAuth implementation (Google only)
-- User session management
-- Basic admin panel
-- User database tables
+- [x] OAuth implementation (Google only)
+- [x] User session management
+- [x] Basic admin panel
+- [x] User database tables
 Tests:
-- Login flow works
-- Session persistence
+- [x] Login flow works
+- [x] Session persistence
 - Admin can view users
-- Unauthenticated users blocked
+- [x] Unauthenticated users blocked
 
 ## Phase 3: Basic Missile Launch
-- City database CSV implementation
+- [x] City database CSV implementation
 - Simple target string parsing
 - Basic missile launch endpoint
-- Missile database tables
+- [x] Missile database tables
 - Minimal frontend map display
 Tests:
 - City lookup works
