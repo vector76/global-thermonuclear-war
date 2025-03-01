@@ -1,0 +1,17 @@
+.map-container {
+  width: 100%;
+  max-width: 100vw;
+  height: 70vh;  /* Take up most of the viewport height */
+  position: relative;
+  background-color: #000;
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.map-background {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;  /* Maintain aspect ratio */
+} 
