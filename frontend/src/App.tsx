@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navigation from './components/Navigation';
@@ -12,21 +13,46 @@ import './styles/Navigation.css';
 import './styles/Legal.css';
 import ProtectedRoute from './components/ProtectedRoute';
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+interface AuthResponse {
+  email: string;
+  is_admin: boolean;
+}
+
+interface NavigationProps {
+  isAuthenticated: boolean;
+  userEmail: string | null;
+  isAdmin: boolean;
+}
+
+interface HomeProps {
+  isAuthenticated: boolean;
+}
+
+interface LoginProps {
+  isAuthenticated: boolean;
+}
+
+interface ProtectedRouteProps {
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  children: React.ReactNode;
+}
+
+function App(): JSX.Element {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     // Check authentication status on load
     checkAuth();
   }, []);
 
-  const checkAuth = async () => {
+  const checkAuth = async (): Promise<void> => {
     try {
       const response = await fetch('/api/v1/auth/me');
       if (response.ok) {
-        const data = await response.json();
+        const data: AuthResponse = await response.json();
         setIsAuthenticated(true);
         setUserEmail(data.email);
         setIsAdmin(data.is_admin);
@@ -71,4 +97,4 @@ function App() {
   );
 }
 
-export default App;
+export default App; 
