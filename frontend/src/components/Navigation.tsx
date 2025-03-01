@@ -1,8 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-function Navigation({ isAuthenticated, userEmail, isAdmin }) {
-  const handleLogout = async () => {
+interface NavigationProps {
+  isAuthenticated: boolean;
+  userEmail: string | null;
+  isAdmin: boolean;
+}
+
+function Navigation({ isAuthenticated, userEmail, isAdmin }: NavigationProps): React.ReactElement {
+  const handleLogout = async (): Promise<void> => {
     try {
       const response = await fetch('/api/v1/auth/logout', {
         method: 'POST',
