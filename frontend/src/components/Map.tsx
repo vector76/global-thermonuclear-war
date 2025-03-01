@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/Map.css';
 
-function Map() {
-  const [svgContent, setSvgContent] = useState('');
+interface SVGPathMatch extends Array<string> {
+  0: string;  // The full match
+  index: number;
+  input: string;
+  groups?: { [key: string]: string };
+}
+
+function Map(): React.ReactElement {
+  const [svgContent, setSvgContent] = useState<string>('');
 
   useEffect(() => {
     fetch('/world_map.svg')

@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Admin() {
+function Admin(): React.ReactElement {
   return (
     <div>
       <h1>Admin Panel</h1>

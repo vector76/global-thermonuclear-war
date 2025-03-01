@@ -2,7 +2,11 @@ import React from 'react';
 import Map from '../components/Map';
 import LaunchForm from '../components/LaunchForm';
 
-function Home({ isAuthenticated }) {
+interface HomeProps {
+  isAuthenticated: boolean;
+}
+
+function Home({ isAuthenticated }: HomeProps): React.ReactElement {
   return (
     <div>
       <h1>Global Thermonuclear War</h1>

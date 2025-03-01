@@ -1,6 +1,6 @@
 import React from 'react';
 
-function PrivacyPolicy() {
+function PrivacyPolicy(): React.ReactElement {
   return (
     <div className="legal-content">
       <h1>Privacy Policy</h1>

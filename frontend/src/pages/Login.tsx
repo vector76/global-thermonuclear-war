@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Login() {
-  const [error, setError] = useState(null);
+interface LoginResponse {
+  authorization_url?: string;
+}
+
+function Login(): React.ReactElement {
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = async (): Promise<void> => {
     try {
       const response = await fetch('/api/v1/auth/login/google');
-      const data = await response.json();
+      const data: LoginResponse = await response.json();
       if (data.authorization_url) {
         window.location.href = data.authorization_url;
       } else {
         setError('Failed to get authorization URL');
       }
     } catch (err) {
-      setError('Failed to initiate login: ' + err.message);
+      setError('Failed to initiate login: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 

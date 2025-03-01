@@ -1,6 +1,6 @@
 import React from 'react';
 
-function ApiDocs() {
+function ApiDocs(): React.ReactElement {
   return (
     <div>
       <h1>API Documentation</h1>

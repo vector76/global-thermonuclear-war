@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Terms() {
+function Terms(): React.ReactElement {
   return (
     <div className="legal-content">
       <h1>Terms of Service</h1>
