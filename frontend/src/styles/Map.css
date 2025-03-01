@@ -1,17 +1,55 @@
 .map-container {
   width: 100%;
   max-width: 100vw;
-  height: 70vh;  /* Take up most of the viewport height */
+  /* Use aspect-ratio instead of fixed height */
+  aspect-ratio: 2 / 1;
   position: relative;
-  background-color: #000;
+  background-color: #000716;  /* Very dark blue background */
   margin: 20px 0;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;  /* Prevent any potential overflow */
 }
 
 .map-background {
   width: 100%;
   height: 100%;
-  object-fit: contain;  /* Maintain aspect ratio */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Override SVG styles with more specificity */
+.map-container .map-background svg {
+  background-color: #000716 !important;  /* Very dark blue for oceans */
+  width: 100%;
+  height: 100%;
+  display: block;  /* Remove any extra space */
+}
+
+.map-container .map-background svg path {
+  fill: #1a1a1a !important;  /* Very dark gray for continents */
+  stroke: #ffffff !important;  /* White borders */
+  stroke-width: 0.3 !important;  /* Thicker borders */
+  transition: fill 0.2s ease;
+}
+
+/* Special country styles */
+.map-container .map-background svg path[title="United States of America"] {
+  stroke: rgb(0, 191, 255) !important;
+  stroke-width: 0.8 !important;
+  paint-order: stroke fill !important;
+  stroke-linejoin: round !important;
+}
+
+.map-container .map-background svg path[title="Russia"] {
+  stroke: rgb(255, 50, 50) !important;
+  stroke-width: 0.8 !important;
+  paint-order: stroke fill !important;
+  stroke-linejoin: round !important;
+}
+
+.map-container .map-background svg path:hover {
+  fill: #2a2a2a !important;  /* Slightly lighter gray on hover */
 } 
