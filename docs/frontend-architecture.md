@@ -4,17 +4,18 @@
 This document outlines the architectural design of our React-based frontend system. The frontend is built using Create React App and follows modern React development practices with a focus on maintainability and scalability.
 
 ## Project Structure
-The frontend follows a standard Create React App structure with organized components and assets:
+The frontend follows a standard Vite + React structure with organized components and assets:
 
 ```
 /frontend
-├── public/           - Static files and HTML template
-├── src/             - Source code
-│   ├── components/  - React components (to be added)
-│   ├── App.js       - Main application component
-│   ├── index.js     - Application entry point
-│   └── styles/      - CSS and styling files
-└── docs/            - Project documentation
+├── public/ - Static files
+├── src/ - Source code
+│ ├── components/ - React components (to be added)
+│ ├── App.tsx - Main application component
+│ ├── index.tsx - Application entry point
+│ └── styles/ - CSS and styling files
+├── index.html - HTML template (moved to root in Vite)
+└── docs/ - Project documentation
 ```
 
 ## Key Components
@@ -43,9 +44,18 @@ Contains static files served directly:
 ## Configuration Details
 
 ### Development Server
-- Runs on port 5100 (configured via proxy setting)
-- Supports hot reloading
+- Runs on Vite's development server
+- Supports hot module replacement (HMR)
 - Includes development tools and error overlay
+- Default port is now handled by Vite configuration
+
+### Build System
+Vite build system provides:
+- Production optimization
+- Code splitting
+- Asset optimization
+- Source map generation
+- Faster builds than CRA
 
 ### Backend Communication
 - Proxy configuration to forward requests to backend (port 5200)
@@ -87,7 +97,8 @@ Current styling approach:
 Key dependencies include:
 - React 19.0.0: Core UI library
 - React DOM: DOM rendering
-- React Scripts: Development and build tools
+- Vite: Development and build tools
+- @vitejs/plugin-react: React plugin for Vite
 - Testing Libraries: Jest and React Testing Library
 - Web Vitals: Performance monitoring
 

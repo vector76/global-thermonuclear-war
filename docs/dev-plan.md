@@ -163,7 +163,7 @@ This project implements a global thermonuclear war simulation game inspired by t
 Manual Testing Checklist:
 
 1. Development Environment:
-   - [x] `cd frontend ; npm start` successfully launches React frontend on port 5100
+   - [x] `cd frontend ; npm run dev` successfully launches Vite frontend on port 5100
    - [x] `cd backend ; python -m app.main` successfully launches FastAPI backend on port 5200
    - [x] Frontend can communicate with backend through proxy
    - [x] Environment variables are properly loaded
