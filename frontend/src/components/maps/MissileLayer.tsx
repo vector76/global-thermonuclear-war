@@ -26,10 +26,13 @@ const MissileLayer = ({
         position: 'absolute', 
         top: 0, 
         left: 0,
-        width,
-        height,
-        pointerEvents: 'none'  // Allow clicks to pass through to map
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',  // Allow clicks to pass through to map
+        zIndex: 20
       }}
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="xMidYMid meet"
     >
       {trajectories.map(trajectory => {
         // Project all points in the trajectory

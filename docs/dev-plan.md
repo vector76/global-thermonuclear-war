@@ -208,11 +208,11 @@ Tests:
 - Simple target string parsing
 - Basic missile launch endpoint
 - [x] Missile database tables
-- Minimal frontend map display
+- [x] Minimal frontend map display
 Tests:
 - City lookup works
 - Can parse coordinates
-- Can store launch records
+- [x] Can store launch records
 - Map displays with basic markers
 
 ## Phase 4: Trajectory Visualization

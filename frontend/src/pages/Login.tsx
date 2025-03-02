@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface LoginResponse {
   authorization_url?: string;
 }
 
-function Login(): React.ReactElement {
+interface LoginProps {
+  isAuthenticated: boolean;
+}
+
+function Login({ isAuthenticated }: LoginProps): React.ReactElement {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  // Redirect to home if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleGoogleLogin = async (): Promise<void> => {
     try {

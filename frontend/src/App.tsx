@@ -8,6 +8,7 @@ import Admin from './pages/Admin';
 import ApiDocs from './pages/ApiDocs';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
+import MapTest from './components/MapTest';
 import './App.css';
 import './styles/Navigation.css';
 import './styles/Legal.css';
@@ -18,27 +19,7 @@ interface AuthResponse {
   is_admin: boolean;
 }
 
-interface NavigationProps {
-  isAuthenticated: boolean;
-  userEmail: string | null;
-  isAdmin: boolean;
-}
-
-interface HomeProps {
-  isAuthenticated: boolean;
-}
-
-interface LoginProps {
-  isAuthenticated: boolean;
-}
-
-interface ProtectedRouteProps {
-  isAuthenticated: boolean;
-  isAdmin: boolean;
-  children: React.ReactNode;
-}
-
-function App(): JSX.Element {
+function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -72,7 +53,7 @@ function App(): JSX.Element {
         />
         <main>
           <Routes>
-            <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} />
+            <Route path="/" element={<Home isAuthenticated={isAuthenticated} isAdmin={isAdmin} />} />
             <Route path="/login" element={<Login isAuthenticated={isAuthenticated} />} />
             <Route 
               path="/admin" 
@@ -85,6 +66,7 @@ function App(): JSX.Element {
             <Route path="/api-docs" element={<ApiDocs />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/map-test" element={<MapTest />} />
           </Routes>
         </main>
         <footer>

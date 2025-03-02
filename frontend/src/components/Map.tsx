@@ -1,39 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import '../styles/Map.css';
+import MapView from './maps/MapView';
+import { PROJECTION_CONFIGS } from '../services/projections';
 
-function Map(): React.ReactElement {
-  const [svgContent, setSvgContent] = useState<string>('');
-  const [currentMap, setCurrentMap] = useState<'world' | 'us' | 'russia'>('world');
+interface MapProps {
+  isAdmin?: boolean;
+  showCoordinateGrid?: boolean;
+}
 
-  useEffect(() => {
-    // Load the appropriate map based on currentMap state
-    let mapFile = '/world_map.svg';
-    
-    if (currentMap === 'us') {
-      mapFile = '/conic_us_map.svg';
-    } else if (currentMap === 'russia') {
-      mapFile = '/conic_russia_map.svg';
-    }
-    
-    fetch(mapFile)
-      .then(response => response.text())
-      .then(content => {
-        console.log(`Original ${currentMap} SVG length:`, content.length);
-
-        // Remove any style tags from the SVG - we'll use our CSS instead
-        let cleanedContent = content.replace(/<style>.*?<\/style>/gs, '');
-        
-        // Override any remaining style attributes
-        cleanedContent = cleanedContent.replace(/<svg/, '<svg style="background-color: #000716;"');
-        
-        console.log(`Modified ${currentMap} SVG length:`, cleanedContent.length);
-        
-        setSvgContent(cleanedContent);
-      })
-      .catch(error => {
-        console.error(`Error fetching ${currentMap} SVG:`, error);
-      });
-  }, [currentMap]); // Re-run when currentMap changes
+function Map({ isAdmin = false, showCoordinateGrid = false }: MapProps): React.ReactElement {
+  const [currentMap, setCurrentMap] = React.useState<'world' | 'us' | 'russia'>('world');
+  const [trajectories, setTrajectories] = React.useState([]);
 
   const handlePrevMap = () => {
     if (currentMap === 'us') {
@@ -61,14 +38,42 @@ function Map(): React.ReactElement {
     }
   };
 
+  // Get the appropriate projection config based on current map
+  const getProjectionConfig = () => {
+    switch (currentMap) {
+      case 'world':
+        return {
+          type: 'equirectangular',
+          config: PROJECTION_CONFIGS.EQUIRECTANGULAR
+        };
+      case 'us':
+        return {
+          type: 'conic',
+          config: PROJECTION_CONFIGS.CONTINENTAL_US
+        };
+      case 'russia':
+        return {
+          type: 'conic',
+          config: PROJECTION_CONFIGS.RUSSIA
+        };
+      default:
+        return {
+          type: 'equirectangular',
+          config: PROJECTION_CONFIGS.EQUIRECTANGULAR
+        };
+    }
+  };
+
+  const projectionInfo = getProjectionConfig();
+
   return (
     <div className="map-container">
-      <div 
-        className="map-background"
-        style={{
-          filter: 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.3))'
-        }}
-        dangerouslySetInnerHTML={{ __html: svgContent }}
+      <MapView 
+        projectionType={projectionInfo.type as 'equirectangular' | 'polar' | 'conic'}
+        config={projectionInfo.config}
+        trajectories={trajectories}
+        isAdmin={isAdmin}
+        showCoordinateGrid={showCoordinateGrid}
       />
       
       {/* Map navigation arrows */}
@@ -93,8 +98,6 @@ function Map(): React.ReactElement {
           &#8594; {/* Right arrow */}
         </button>
       </div>
-      
-      {/* Map overlay elements will go here (missiles, impacts, etc) */}
     </div>
   );
 }
