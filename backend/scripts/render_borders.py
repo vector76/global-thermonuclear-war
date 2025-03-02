@@ -40,19 +40,44 @@ def generate_svg(country_borders: List[Dict], filename: str = "world_map.svg", w
         '<style>',
         '  path { fill: #f0f0f0; stroke: #666; stroke-width: 0.1; }',
         '  path:hover { fill: #ddd; }',
+        '  path.us-path { stroke: rgb(0, 191, 255); stroke-width: 0.8; paint-order: stroke; stroke-linejoin: round; }',
+        '  path.russia-path { stroke: rgb(255, 50, 50); stroke-width: 0.8; paint-order: stroke; stroke-linejoin: round; }',
         '</style>'
     ]
     
-    # Generate paths for each country
+    # Separate countries into regular, US, and Russia
+    regular_countries = []
+    us_paths = []
+    russia_paths = []
+    
     for country_data in country_borders:
         country_name = country_data['country']
+        
+        # Generate paths for each polygon in the country
+        country_paths = []
         for polygon in country_data['borders']:
             # Normalize coordinates to SVG space
             norm_coords = normalize_coordinates(polygon, width, height)
             
             # Create SVG path
             path_data = "M " + " L ".join(f"{x},{y}" for x, y in norm_coords) + " Z"
-            svg_content.append(f'<path d="{path_data}" title="{country_name}"/>')
+            
+            if country_name == "United States of America":
+                us_paths.append(f'<path d="{path_data}" class="us-path" title="{country_name}"/>')
+            elif country_name == "Russia":
+                russia_paths.append(f'<path d="{path_data}" class="russia-path" title="{country_name}"/>')
+            else:
+                country_paths.append(f'<path d="{path_data}" title="{country_name}"/>')
+        
+        if country_name not in ["United States of America", "Russia"]:
+            regular_countries.extend(country_paths)
+    
+    # Add regular countries first
+    svg_content.extend(regular_countries)
+    
+    # Then add US and Russia at the end so they appear on top
+    svg_content.extend(us_paths)
+    svg_content.extend(russia_paths)
     
     # SVG footer
     svg_content.append('</svg>')

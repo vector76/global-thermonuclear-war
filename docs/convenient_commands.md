@@ -25,5 +25,5 @@ python -m scripts.list_missiles
 Launch the frontend:
 ```bash
 cd frontend
-npm start
+npm run dev
 ```
