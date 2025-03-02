@@ -3,7 +3,7 @@ import {
   BaseProjection,
   EquirectangularProjection,
   PolarProjection,
-  ConicProjection,
+  AlbersConicProjection,
   PROJECTION_CONFIGS
 } from '../../services/projections';
 import { 
@@ -25,6 +25,21 @@ interface MapViewProps {
   showCoordinateGrid?: boolean;
 }
 
+// Default scale and offset values for maps
+// These match the values used in the Python map generation
+const MAP_SCALE_OFFSETS = {
+  'conic_us_map.svg': {
+    scaleFactor: 668.659129,
+    offsetX: -0.03,
+    offsetY: 0.01
+  },
+  'conic_russia_map.svg': {
+    scaleFactor: 493.219777,
+    offsetX: 0.07,
+    offsetY: 54.11
+  }
+};
+
 const MapView = ({
   projectionType,
   config,
@@ -38,8 +53,26 @@ const MapView = ({
   const [loadedSvgContent, setLoadedSvgContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mapFile, setMapFile] = useState('');
 
   useEffect(() => {
+    // Determine which map file to load
+    let mapFileName = '/world_map.svg';
+    
+    if (projectionType === 'polar') {
+      mapFileName = '/polar_map.svg';
+    } else if (projectionType === 'conic') {
+      // For conic, we need to determine which region
+      const conicConfig = config as ConicProjectionConfig;
+      if (conicConfig.centerLon === -98) {
+        mapFileName = '/conic_us_map.svg';
+      } else if (conicConfig.centerLon === 100) {
+        mapFileName = '/conic_russia_map.svg';
+      }
+    }
+    
+    setMapFile(mapFileName);
+    
     // Initialize the appropriate projection
     let proj: BaseProjection;
     switch (projectionType) {
@@ -50,7 +83,18 @@ const MapView = ({
         proj = new PolarProjection(config as PolarProjectionConfig);
         break;
       case 'conic':
-        proj = new ConicProjection(config as ConicProjectionConfig);
+        // Use AlbersConicProjection instead of ConicProjection for better accuracy
+        const albersProj = new AlbersConicProjection(config as ConicProjectionConfig);
+        
+        // Apply custom scale and offset if available for this map
+        const mapBaseName = mapFileName.split('/').pop() || '';
+        if (mapBaseName in MAP_SCALE_OFFSETS) {
+          const { scaleFactor, offsetX, offsetY } = MAP_SCALE_OFFSETS[mapBaseName as keyof typeof MAP_SCALE_OFFSETS];
+          console.log(`Applying default scale: ${scaleFactor}, offsets: (${offsetX}, ${offsetY}) for ${mapBaseName}`);
+          albersProj.setCustomScaleAndOffset(scaleFactor, offsetX, offsetY);
+        }
+        
+        proj = albersProj;
         break;
       default:
         console.error('Unknown projection type:', projectionType);
@@ -73,23 +117,9 @@ const MapView = ({
     setIsLoading(true);
     setError(null);
     
-    let mapFile = '/world_map.svg';
+    console.log(`MapView: Fetching map: ${mapFileName}`);
     
-    if (projectionType === 'polar') {
-      mapFile = '/polar_map.svg';
-    } else if (projectionType === 'conic') {
-      // For conic, we need to determine which region
-      const conicConfig = config as ConicProjectionConfig;
-      if (conicConfig.centerLon === -98) {
-        mapFile = '/conic_us_map.svg';
-      } else if (conicConfig.centerLon === 90) {
-        mapFile = '/conic_russia_map.svg';
-      }
-    }
-    
-    console.log(`MapView: Fetching map: ${mapFile}`);
-    
-    fetch(mapFile)
+    fetch(mapFileName)
       .then(response => {
         if (!response.ok) {
           throw new Error(`Failed to load map: ${response.status} ${response.statusText}`);
@@ -106,6 +136,31 @@ const MapView = ({
         // Extract the original viewBox if it exists
         const viewBoxMatch = content.match(/viewBox=["']([^"']*)["']/);
         const originalViewBox = viewBoxMatch ? viewBoxMatch[1] : `0 0 ${config.width} ${config.height}`;
+        
+        // Look for embedded scale and offset data in the SVG
+        // This would be added by the Python script during map generation
+        const scaleMatch = content.match(/data-scale=["']([^"']*)["']/);
+        const offsetXMatch = content.match(/data-offset-x=["']([^"']*)["']/);
+        const offsetYMatch = content.match(/data-offset-y=["']([^"']*)["']/);
+        
+        if (scaleMatch && offsetXMatch && offsetYMatch && projection instanceof AlbersConicProjection) {
+          const scaleFactor = parseFloat(scaleMatch[1]);
+          const offsetX = parseFloat(offsetXMatch[1]);
+          const offsetY = parseFloat(offsetYMatch[1]);
+          
+          console.log(`Found embedded scale: ${scaleFactor}, offsets: (${offsetX}, ${offsetY})`);
+          projection.setCustomScaleAndOffset(scaleFactor, offsetX, offsetY);
+          
+          // Update the default values for future use
+          const mapBaseName = mapFileName.split('/').pop() || '';
+          if (mapBaseName in MAP_SCALE_OFFSETS) {
+            MAP_SCALE_OFFSETS[mapBaseName as keyof typeof MAP_SCALE_OFFSETS] = {
+              scaleFactor,
+              offsetX,
+              offsetY
+            };
+          }
+        }
         
         // Remove any style tags from the SVG
         let cleanedContent = content.replace(/<style>.*?<\/style>/gs, '');

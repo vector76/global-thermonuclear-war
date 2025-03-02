@@ -1,7 +1,7 @@
 export { BaseProjection } from './BaseProjection';
 export { EquirectangularProjection } from './EquirectangularProjection';
 export { PolarProjection } from './PolarProjection';
-export { ConicProjection } from './ConicProjection';
+export { AlbersConicProjection } from './AlbersConicProjection';
 
 export const PROJECTION_CONFIGS = {
   EQUIRECTANGULAR: {
@@ -19,8 +19,8 @@ export const PROJECTION_CONFIGS = {
   },
 
   CONTINENTAL_US: {
-    width: 800,
-    height: 500,
+    width: 720,
+    height: 360,
     scale: 1,
     standardParallel1: 33,
     standardParallel2: 45,
@@ -35,16 +35,16 @@ export const PROJECTION_CONFIGS = {
   },
 
   RUSSIA: {
-    width: 1000,
-    height: 600,
+    width: 720,
+    height: 360,
     scale: 1,
-    standardParallel1: 45,
-    standardParallel2: 65,
-    centerLat: 55,
-    centerLon: 90,
+    standardParallel1: 50,
+    standardParallel2: 70,
+    centerLat: 60,
+    centerLon: 100,
     bounds: {
       minLat: 40,
-      maxLat: 77,
+      maxLat: 85,
       minLon: 20,
       maxLon: 180
     }

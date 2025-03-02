@@ -16,20 +16,72 @@ const CoordinateGridLayer = ({
 }: CoordinateGridLayerProps) => {
   if (!visible) return null;
 
-  // Generate grid points every 10 degrees
-  const gridPoints: Coordinates[] = [];
-  
-  // Generate points from -90 to 90 latitude, -180 to 180 longitude, every 10 degrees
-  for (let lat = -90; lat <= 90; lat += 10) {
-    for (let lon = -180; lon <= 180; lon += 10) {
-      gridPoints.push({ latitude: lat, longitude: lon });
-    }
-  }
-
   // Filter function to remove any off-screen points (those that project to -1,-1)
   const filterValidPoints = (point: ProjectedCoordinates): boolean => {
     return point.x !== -1 && point.y !== -1;
   };
+
+  // Generate latitude lines (horizontal)
+  const latitudeLines = [];
+  for (let lat = -80; lat <= 80; lat += 10) {
+    const points: ProjectedCoordinates[] = [];
+    
+    // Generate points along this latitude line
+    for (let lon = -180; lon <= 180; lon += 5) {
+      const projectedPoint = projectCoordinates({ latitude: lat, longitude: lon });
+      if (filterValidPoints(projectedPoint)) {
+        points.push(projectedPoint);
+      }
+    }
+    
+    if (points.length > 1) {
+      latitudeLines.push(
+        <path
+          key={`lat-${lat}`}
+          d={`M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`}
+          stroke="rgba(0, 255, 0, 0.3)"
+          strokeWidth="0.5"
+          fill="none"
+        />
+      );
+    }
+  }
+
+  // Generate longitude lines (vertical)
+  const longitudeLines = [];
+  for (let lon = -180; lon <= 180; lon += 10) {
+    const points: ProjectedCoordinates[] = [];
+    
+    // Generate points along this longitude line
+    for (let lat = -90; lat <= 90; lat += 5) {
+      const projectedPoint = projectCoordinates({ latitude: lat, longitude: lon });
+      if (filterValidPoints(projectedPoint)) {
+        points.push(projectedPoint);
+      }
+    }
+    
+    if (points.length > 1) {
+      longitudeLines.push(
+        <path
+          key={`lon-${lon}`}
+          d={`M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`}
+          stroke="rgba(0, 255, 0, 0.3)"
+          strokeWidth="0.5"
+          fill="none"
+        />
+      );
+    }
+  }
+
+  // Generate grid points at intersections
+  const gridPoints: Coordinates[] = [];
+  
+  // Generate points from -80 to 80 latitude, -180 to 180 longitude, every 10 degrees
+  for (let lat = -80; lat <= 80; lat += 10) {
+    for (let lon = -180; lon <= 180; lon += 10) {
+      gridPoints.push({ latitude: lat, longitude: lon });
+    }
+  }
 
   return (
     <svg 
@@ -46,6 +98,11 @@ const CoordinateGridLayer = ({
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="xMidYMid meet"
     >
+      {/* Draw latitude and longitude lines */}
+      {latitudeLines}
+      {longitudeLines}
+      
+      {/* Draw grid points at intersections */}
       {gridPoints.map((point, index) => {
         const projectedPoint = projectCoordinates(point);
         

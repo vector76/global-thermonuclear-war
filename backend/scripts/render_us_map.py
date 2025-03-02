@@ -178,19 +178,6 @@ def generate_us_map(country_borders: List[Dict], filename: str = "../frontend/pu
     test_random_points(projection)
 
     print("\nGenerating SVG paths...")
-    # SVG header with updated dimensions and viewBox
-    svg_content = [
-        f'<svg width="{config["width"]}" height="{config["height"]}" viewBox="0 0 360 180" xmlns="http://www.w3.org/2000/svg">',
-        '<style>',
-        '  path { fill: #f0f0f0; stroke: #666; stroke-width: 0.1; }',
-        '  path:hover { fill: #ddd; }',
-        '  path.us-path { stroke: rgb(0, 191, 255); stroke-width: 0.8; paint-order: stroke; stroke-linejoin: round; }',
-        '</style>'
-    ]
-    
-    # Separate countries into US and others
-    us_paths = []
-    other_country_paths = []
     
     # First pass: project all coordinates to find the optimal scale factor
     all_projected_points = []
@@ -232,6 +219,10 @@ def generate_us_map(country_borders: List[Dict], filename: str = "../frontend/pu
             all_projected_points.extend(country_projected_points)
     
     # Calculate the optimal scale factor based on points within lat/lon bounds
+    optimal_scale = 1.0
+    offset_x = 0.0
+    offset_y = 0.0
+    
     if all_projected_points:
         min_x = min(p[0] for p in all_projected_points)
         max_x = max(p[0] for p in all_projected_points)
@@ -266,14 +257,27 @@ def generate_us_map(country_borders: List[Dict], filename: str = "../frontend/pu
         print(f"Projected area: width={proj_width:.2f}, height={proj_height:.2f}")
         print(f"After scaling: width={proj_width * optimal_scale:.2f}, height={proj_height * optimal_scale:.2f}")
     else:
-        optimal_scale = 1.0
-        offset_x = 0
-        offset_y = 0
         print("\nWarning: No points in bounds to calculate optimal scale. Using default scale of 1.0")
+    
+    # SVG header with updated dimensions and viewBox, including projection data
+    svg_content = [
+        f'<svg width="{config["width"]}" height="{config["height"]}" viewBox="0 0 360 180" '
+        f'data-scale="{optimal_scale:.6f}" data-offset-x="{offset_x:.2f}" data-offset-y="{offset_y:.2f}" '
+        f'xmlns="http://www.w3.org/2000/svg">',
+        '<style>',
+        '  path { fill: #f0f0f0; stroke: #666; stroke-width: 0.1; }',
+        '  path:hover { fill: #ddd; }',
+        '  path.us-path { stroke: rgb(0, 191, 255); stroke-width: 0.8; paint-order: stroke; stroke-linejoin: round; }',
+        '</style>'
+    ]
     
     # Generate paths for each country using the optimal scale
     countries_included = 0
     total_points = 0
+    
+    # Separate countries into US and others
+    us_paths = []
+    other_country_paths = []
     
     for country_data in countries_in_bounds:
         country_name = country_data['country']
@@ -357,6 +361,8 @@ def generate_us_map(country_borders: List[Dict], filename: str = "../frontend/pu
     print(f"\nSummary:")
     print(f"Countries included: {countries_included}")
     print(f"Total points rendered: {total_points}")
+    print(f"Scale factor: {optimal_scale:.6f}")
+    print(f"Offset X: {offset_x:.2f}, Offset Y: {offset_y:.2f}")
     
     # SVG footer
     svg_content.append('</svg>')
