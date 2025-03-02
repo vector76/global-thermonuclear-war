@@ -29,8 +29,6 @@ class MissileResponse(MissileBase):
     def serialize_datetime(self, dt: datetime, _info):
         if dt is None:
             return None
-        # Ensure the datetime has the 'Z' suffix to mark it as UTC
-        print("using custom serializer")
         # Force UTC timezone if not already set
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=UTC)

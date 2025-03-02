@@ -1,7 +1,8 @@
-import React, { useState, FormEvent, ChangeEvent } from 'react';
+import React, { useState, FormEvent, ChangeEvent, useEffect } from 'react';
 import axios from 'axios';
 import cityLookup from '../utils/cityLookup';
 import { useMissiles } from '../contexts/MissileContext';
+import { useCoordinates } from '../contexts/CoordinateContext';
 
 interface LaunchFormProps {
   isAuthenticated: boolean;
@@ -18,6 +19,21 @@ export default function LaunchForm({ isAuthenticated, isAdmin = false }: LaunchF
   const [success, setSuccess] = useState<string>('');
   const [lookupResult, setLookupResult] = useState<string>('');
   const { refreshMissiles } = useMissiles();
+  const { selectedCoordinates } = useCoordinates();
+
+  // Update the target string when coordinates are selected on the map
+  useEffect(() => {
+    if (selectedCoordinates) {
+      // Format the coordinates with 4 decimal places
+      const formattedCoords = `${selectedCoordinates.latitude.toFixed(4)},${selectedCoordinates.longitude.toFixed(4)}`;
+      setTargetString(formattedCoords);
+      
+      // Clear any previous messages
+      setError('');
+      setSuccess('');
+      setLookupResult('');
+    }
+  }, [selectedCoordinates]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();

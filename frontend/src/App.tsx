@@ -10,6 +10,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import MapTest from './components/MapTest';
 import { MissileProvider } from './contexts/MissileContext';
+import { CoordinateProvider } from './contexts/CoordinateContext';
 import './App.css';
 import './styles/Navigation.css';
 import './styles/Legal.css';
@@ -47,36 +48,38 @@ function App() {
   return (
     <Router>
       <MissileProvider>
-        <div className="App">
-          <Navigation 
-            isAuthenticated={isAuthenticated} 
-            userEmail={userEmail}
-            isAdmin={isAdmin}
-          />
-          <main>
-            <Routes>
-              <Route path="/" element={<Home isAuthenticated={isAuthenticated} isAdmin={isAdmin} />} />
-              <Route path="/login" element={<Login isAuthenticated={isAuthenticated} />} />
-              <Route 
-                path="/admin" 
-                element={
-                  <ProtectedRoute isAuthenticated={isAuthenticated} isAdmin={isAdmin}>
-                    <Admin />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/api-docs" element={<ApiDocs />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/map-test" element={<MapTest />} />
-            </Routes>
-          </main>
-          <footer>
-            <nav>
-              <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a>
-            </nav>
-          </footer>
-        </div>
+        <CoordinateProvider>
+          <div className="App">
+            <Navigation 
+              isAuthenticated={isAuthenticated} 
+              userEmail={userEmail}
+              isAdmin={isAdmin}
+            />
+            <main>
+              <Routes>
+                <Route path="/" element={<Home isAuthenticated={isAuthenticated} isAdmin={isAdmin} />} />
+                <Route path="/login" element={<Login isAuthenticated={isAuthenticated} />} />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} isAdmin={isAdmin}>
+                      <Admin />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/api-docs" element={<ApiDocs />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/map-test" element={<MapTest />} />
+              </Routes>
+            </main>
+            <footer>
+              <nav>
+                <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a>
+              </nav>
+            </footer>
+          </div>
+        </CoordinateProvider>
       </MissileProvider>
     </Router>
   );

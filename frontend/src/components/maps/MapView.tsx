@@ -16,6 +16,7 @@ import {
 } from '../../types';
 import MissileLayer from './MissileLayer';
 import CoordinateGridLayer from './CoordinateGridLayer';
+import { useCoordinates } from '../../contexts/CoordinateContext';
 
 interface MapViewProps {
   projectionType: 'equirectangular' | 'polar' | 'conic';
@@ -58,6 +59,8 @@ const MapView = ({
   const [mapFile, setMapFile] = useState('');
   // Add state for mouse coordinates
   const [mouseCoordinates, setMouseCoordinates] = useState<Coordinates | null>(null);
+  // Get the coordinate context
+  const { setSelectedCoordinates } = useCoordinates();
 
   useEffect(() => {
     // Determine which map file to load
@@ -213,6 +216,30 @@ const MapView = ({
     setMouseCoordinates(null);
   };
 
+  // Handle click to set selected coordinates
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!projection) return;
+    
+    // Get the bounding rectangle of the map container
+    const rect = event.currentTarget.getBoundingClientRect();
+    
+    // Calculate the relative position within the map
+    const x = (event.clientX - rect.left) / rect.width * config.width;
+    const y = (event.clientY - rect.top) / rect.height * config.height;
+    
+    // Convert screen coordinates to lat/long using the projection
+    try {
+      const coords = projection.unproject({ x, y });
+      // Update the coordinate context with the clicked coordinates
+      setSelectedCoordinates(coords);
+      
+      // Visual feedback for click (optional)
+      console.log(`Map clicked at: ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
+    } catch (error) {
+      console.error('Error unprojecting coordinates:', error);
+    }
+  };
+
   if (!projection) {
     return <div>Loading projection...</div>;
   }
@@ -236,6 +263,7 @@ const MapView = ({
       className={`map-view ${className}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
     >
       {/* Base map */}
       <div 
