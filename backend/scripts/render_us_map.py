@@ -29,6 +29,99 @@ def normalize_longitude(lon: float) -> float:
 def clamp_latitude(lat: float) -> float:
     return max(-90, min(90, lat))
 
+def subdivide_segment(lon1: float, lat1: float, lon2: float, lat2: float, num_segments: int = 10) -> List[Tuple[float, float]]:
+    """
+    Subdivides a line segment between two geographic points into multiple segments.
+    
+    Args:
+        lon1, lat1: Coordinates of the first point
+        lon2, lat2: Coordinates of the second point
+        num_segments: Number of segments to divide the line into
+        
+    Returns:
+        List of intermediate points including the endpoints
+    """
+    points = []
+    
+    # Handle the case where the segment crosses the antimeridian
+    if abs(lon2 - lon1) > 180:
+        if lon1 < 0:
+            lon1 += 360
+        elif lon2 < 0:
+            lon2 += 360
+    
+    for i in range(num_segments + 1):
+        t = i / num_segments
+        # Linear interpolation between the two points
+        lon = lon1 + t * (lon2 - lon1)
+        lat = lat1 + t * (lat2 - lat1)
+        
+        # Normalize longitude back to [-180, 180]
+        lon = normalize_longitude(lon)
+        
+        points.append((lon, lat))
+    
+    return points
+
+def is_northern_border_segment(lon1: float, lat1: float, lon2: float, lat2: float, config: Dict) -> bool:
+    """
+    Determines if a segment is likely part of the northern US border.
+    
+    Args:
+        lon1, lat1: Coordinates of the first point
+        lon2, lat2: Coordinates of the second point
+        config: Map configuration with bounds
+        
+    Returns:
+        True if the segment is likely part of the northern border
+    """
+    # Check if both points are near the northern boundary of the US
+    northern_lat_threshold = 48.5  # Approximate latitude of US-Canada border
+    
+    # Check if both points are at a high latitude
+    high_latitude = (lat1 > northern_lat_threshold and lat2 > northern_lat_threshold)
+    
+    # Check if the segment is relatively long in longitude
+    long_segment = abs(lon2 - lon1) > 3.0  # More than 3 degrees longitude difference
+    
+    return high_latitude and long_segment
+
+def is_border_segment_to_subdivide(lon1: float, lat1: float, lon2: float, lat2: float, country_name: str, config: Dict) -> bool:
+    """
+    Determines if a segment should be subdivided for better projection.
+    Handles both the northern US border and southern Canada border.
+    
+    Args:
+        lon1, lat1: Coordinates of the first point
+        lon2, lat2: Coordinates of the second point
+        country_name: Name of the country this segment belongs to
+        config: Map configuration with bounds
+        
+    Returns:
+        True if the segment should be subdivided
+    """
+    # US-Canada border approximate latitude
+    border_lat = 48.5
+    
+    # For US, check northern border
+    if country_name == "United States of America":
+        # Check if both points are near the northern boundary of the US
+        high_latitude = (lat1 > border_lat and lat2 > border_lat)
+        
+    # For Canada, check southern border
+    elif country_name == "Canada":
+        # Check if both points are near the southern boundary of Canada
+        low_latitude = (lat1 < border_lat + 1.5 and lat2 < border_lat + 1.5)
+        high_latitude = low_latitude  # Rename for consistency with the return statement
+    else:
+        # For other countries, don't subdivide
+        return False
+    
+    # Check if the segment is relatively long in longitude
+    long_segment = abs(lon2 - lon1) > 3.0  # More than 3 degrees longitude difference
+    
+    return high_latitude and long_segment
+
 class ConicProjection:
     def __init__(self, config: Dict):
         self.config = config
@@ -274,6 +367,7 @@ def generate_us_map(country_borders: List[Dict], filename: str = "../frontend/pu
     # Generate paths for each country using the optimal scale
     countries_included = 0
     total_points = 0
+    subdivided_segments = 0
     
     # Separate countries into US and others
     us_paths = []
@@ -298,39 +392,75 @@ def generate_us_map(country_borders: List[Dict], filename: str = "../frontend/pu
                 lon1, lat1 = polygon[i]
                 lon2, lat2 = polygon[(i + 1) % len(polygon)]  # Wrap around to first point
                 
-                # Project both endpoints
-                x1, y1 = projection.project(lon1, lat1, scale_factor=optimal_scale)
-                x2, y2 = projection.project(lon2, lat2, scale_factor=optimal_scale)
-                
-                # Apply centering offset
-                x1 += offset_x
-                y1 += offset_y
-                x2 += offset_x
-                y2 += offset_y
-                
-                # Check if either endpoint is within the map bounds
-                point1_visible = (0 <= x1 <= config["width"] and 0 <= y1 <= config["height"])
-                point2_visible = (0 <= x2 <= config["width"] and 0 <= y2 <= config["height"])
-                
-                if point1_visible or point2_visible:
-                    any_point_visible = True
+                # Check if this segment should be subdivided (for US-Canada border)
+                if is_border_segment_to_subdivide(lon1, lat1, lon2, lat2, country_name, config):
+                    # Subdivide the segment into multiple points
+                    segment_length = abs(lon2 - lon1)
+                    # Determine number of segments based on length (1 point per degree of longitude)
+                    num_segments = max(1, int(segment_length))
+                    subdivided_points = subdivide_segment(lon1, lat1, lon2, lat2, num_segments)
                     
-                    # Scale coordinates to fit the viewBox
-                    scaled_x1 = x1 * (360 / config["width"])
-                    scaled_y1 = y1 * (180 / config["height"])
+                    # Process each subdivided point
+                    for j in range(len(subdivided_points) - 1):  # Skip the last point as it will be the start of the next segment
+                        sub_lon, sub_lat = subdivided_points[j]
+                        
+                        # Project the subdivided point
+                        x, y = projection.project(sub_lon, sub_lat, scale_factor=optimal_scale)
+                        
+                        # Apply centering offset
+                        x += offset_x
+                        y += offset_y
+                        
+                        # Check if point is within the map bounds
+                        point_visible = (0 <= x <= config["width"] and 0 <= y <= config["height"])
+                        
+                        if point_visible:
+                            any_point_visible = True
+                            
+                            # Scale coordinates to fit the viewBox
+                            scaled_x = x * (360 / config["width"])
+                            scaled_y = y * (180 / config["height"])
+                            
+                            # Only add the point if it's not already the last point added
+                            if not projected_coords or (scaled_x, scaled_y) != projected_coords[-1]:
+                                projected_coords.append((scaled_x, scaled_y))
+                                country_points += 1
                     
-                    # Only add the point if it's not already the last point added
-                    if not projected_coords or (scaled_x1, scaled_y1) != projected_coords[-1]:
-                        projected_coords.append((scaled_x1, scaled_y1))
-                        country_points += 1
+                    subdivided_segments += 1
+                else:
+                    # Project both endpoints of the regular segment
+                    x1, y1 = projection.project(lon1, lat1, scale_factor=optimal_scale)
+                    x2, y2 = projection.project(lon2, lat2, scale_factor=optimal_scale)
                     
-                    # Add the second point if it's different from the first
-                    scaled_x2 = x2 * (360 / config["width"])
-                    scaled_y2 = y2 * (180 / config["height"])
+                    # Apply centering offset
+                    x1 += offset_x
+                    y1 += offset_y
+                    x2 += offset_x
+                    y2 += offset_y
                     
-                    if (scaled_x2, scaled_y2) != (scaled_x1, scaled_y1):
-                        projected_coords.append((scaled_x2, scaled_y2))
-                        country_points += 1
+                    # Check if either endpoint is within the map bounds
+                    point1_visible = (0 <= x1 <= config["width"] and 0 <= y1 <= config["height"])
+                    point2_visible = (0 <= x2 <= config["width"] and 0 <= y2 <= config["height"])
+                    
+                    if point1_visible or point2_visible:
+                        any_point_visible = True
+                        
+                        # Scale coordinates to fit the viewBox
+                        scaled_x1 = x1 * (360 / config["width"])
+                        scaled_y1 = y1 * (180 / config["height"])
+                        
+                        # Only add the point if it's not already the last point added
+                        if not projected_coords or (scaled_x1, scaled_y1) != projected_coords[-1]:
+                            projected_coords.append((scaled_x1, scaled_y1))
+                            country_points += 1
+                        
+                        # Add the second point if it's different from the first
+                        scaled_x2 = x2 * (360 / config["width"])
+                        scaled_y2 = y2 * (180 / config["height"])
+                        
+                        if (scaled_x2, scaled_y2) != (scaled_x1, scaled_y1):
+                            projected_coords.append((scaled_x2, scaled_y2))
+                            country_points += 1
             
             # Skip polygons where no points are visible
             if not any_point_visible:
@@ -361,6 +491,7 @@ def generate_us_map(country_borders: List[Dict], filename: str = "../frontend/pu
     print(f"\nSummary:")
     print(f"Countries included: {countries_included}")
     print(f"Total points rendered: {total_points}")
+    print(f"Subdivided segments: {subdivided_segments}")
     print(f"Scale factor: {optimal_scale:.6f}")
     print(f"Offset X: {offset_x:.2f}, Offset Y: {offset_y:.2f}")
     
