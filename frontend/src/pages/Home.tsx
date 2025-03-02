@@ -17,7 +17,7 @@ function Home({ isAuthenticated, isAdmin }: HomeProps): React.ReactElement {
       {/* Launch controls */}
       <div className="fixed bottom-0 left-0 right-0 bg-black bg-opacity-80 p-4">
         <div className="max-w-md mx-auto flex items-center justify-between">
-          <LaunchForm isAuthenticated={isAuthenticated} />
+          <LaunchForm isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
           
           {/* Coordinate grid toggle */}
           {isAdmin && (
