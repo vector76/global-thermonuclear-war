@@ -60,7 +60,7 @@ Dedicated to Pydantic models:
   - Server port (5200)
 
 ### CORS Configuration
-- Configured to allow requests from the React frontend (localhost:5100)
+- Configured to allow requests from the React frontend (localhost:5173)
 - Supports credentials
 - Allows all methods and headers for development
 

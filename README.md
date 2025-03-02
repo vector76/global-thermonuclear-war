@@ -65,7 +65,7 @@ npm install
 npm start
 ```
 
-The frontend will be available at `http://localhost:5100`
+The frontend will be available at `http://localhost:5173`
 
 ## System Constraints
 - Maximum concurrent missiles per user: 3 (default)

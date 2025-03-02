@@ -66,7 +66,7 @@ async def google_callback(
     # Create response with cookie and redirect
     response = JSONResponse({
         "status": "success",
-        "redirect_url": "http://localhost:5100/"  # Redirect to frontend
+        "redirect_url": "http://localhost:5173/"  # Updated from 5100 to 5173 for Vite
     })
     response.set_cookie(
         key="session",
@@ -76,7 +76,7 @@ async def google_callback(
         samesite="lax",
         max_age=3600  # 1 hour
     )
-    response.headers["Location"] = "http://localhost:5100/"
+    response.headers["Location"] = "http://localhost:5173/"
     response.status_code = 307  # Temporary redirect
     
     return response

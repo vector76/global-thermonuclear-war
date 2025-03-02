@@ -16,7 +16,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5100"],  # Frontend URL
+    allow_origins=["http://localhost:5173"],  # Updated from 5100 to 5173 for Vite
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
