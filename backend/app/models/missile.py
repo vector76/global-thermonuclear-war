@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Integer, Float, ForeignKey, DateTime, select, func
 from .base import TimeStampedBase
 from datetime import datetime, UTC
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from typing import Optional
 
 class MissileBase(BaseModel):
@@ -16,16 +16,30 @@ class MissileCreate(MissileBase):
     launch_time: datetime
     impact_time: datetime
 
-class Missile(MissileBase):
+class MissileResponse(MissileBase):
     id: int
     user_id: int
     launch_time: datetime
     impact_time: datetime
     created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    # Serializers to ensure datetime fields include 'Z' suffix for UTC
+    @field_serializer('launch_time', 'impact_time', 'created_at', 'updated_at')
+    def serialize_datetime(self, dt: datetime, _info):
+        if dt is None:
+            return None
+        # Ensure the datetime has the 'Z' suffix to mark it as UTC
+        print("using custom serializer")
+        # Force UTC timezone if not already set
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+        # Format with Z suffix
+        return dt.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
     @property
     def is_active(self) -> bool:
-        return self.impact_time > datetime.utcnow()
+        return self.impact_time > datetime.now(UTC)
 
     class Config:
         from_attributes = True

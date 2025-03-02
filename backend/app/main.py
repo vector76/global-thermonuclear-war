@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import uvicorn
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import settings
@@ -7,10 +8,34 @@ from app.core.database import get_db
 from app.models import Configuration
 from sqlalchemy import select
 from app.api.v1 import auth, router as api_v1_router  # Import the auth router and the new router
+from fastapi.encoders import jsonable_encoder
+from datetime import datetime
+import json
+
+# Custom JSON encoder to ensure datetime objects include 'Z' suffix for UTC
+class UTCDatetimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            # Ensure the datetime has the 'Z' suffix to mark it as UTC
+            return obj.isoformat().replace('+00:00', 'Z')
+        return super().default(obj)
+
+# Custom response class to use our encoder
+class CustomJSONResponse(JSONResponse):
+    def render(self, content) -> bytes:
+        return json.dumps(
+            content,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=None,
+            separators=(",", ":"),
+            cls=UTCDatetimeEncoder,
+        ).encode("utf-8")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    default_response_class=CustomJSONResponse  # Use our custom response class
 )
 
 # Configure CORS

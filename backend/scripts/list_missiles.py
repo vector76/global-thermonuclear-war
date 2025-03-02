@@ -1,12 +1,15 @@
 import asyncio
 import sys
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 sys.path.append(".")  # Allow importing from parent directory
 
 from app.core.database import engine, Base
 from app.models.missile import Missile
+
+# Configurable impact duration in minutes
+IMPACT_DURATION_MINUTES = 60
 
 async def list_missiles(db: AsyncSession):
     """Display all missiles in the database"""
@@ -29,12 +32,27 @@ async def list_missiles(db: AsyncSession):
     for missile in missiles:
         launch_pos = f"{missile.launch_latitude:.2f}, {missile.launch_longitude:.2f}"
         target = f"{missile.target_latitude:.2f}, {missile.target_longitude:.2f}"
+        
+        # Ensure times have timezone info
+        launch_time = missile.launch_time if missile.launch_time.tzinfo else missile.launch_time.replace(tzinfo=UTC)
         impact_time = missile.impact_time if missile.impact_time.tzinfo else missile.impact_time.replace(tzinfo=UTC)
-        status = "ACTIVE" if impact_time > now else "IMPACT"
+        
+        # Calculate expiration time (impact time + duration)
+        expiration_time = impact_time + timedelta(minutes=IMPACT_DURATION_MINUTES)
+        
+        # Determine missile state based on current time and launch/impact times
+        if now < launch_time:
+            status = "PENDING"
+        elif now < impact_time:
+            status = "ACTIVE"
+        elif now < expiration_time:
+            status = "IMPACT"
+        else:
+            status = "EXPIRED"
         
         print(f"{missile.id:4} {missile.user_id:4} "
-              f"{missile.launch_time.strftime('%Y-%m-%d %H:%M:%S'):20} "
-              f"{missile.impact_time.strftime('%Y-%m-%d %H:%M:%S'):20} "
+              f"{launch_time.strftime('%Y-%m-%d %H:%M:%S'):20} "
+              f"{impact_time.strftime('%Y-%m-%d %H:%M:%S'):20} "
               f"{launch_pos:30} {target:30} {status:8}")
     print("-" * 120 + "\n")
 

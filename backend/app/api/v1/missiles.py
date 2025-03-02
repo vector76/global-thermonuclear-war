@@ -3,11 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 from app.core.database import get_db
-from app.models.missile import MissileCreate, Missile
+from app.models.missile import MissileCreate, MissileResponse, Missile
 from app.models.config import Configuration
 from app.crud.missile import create_missile
 from app.api.deps import get_current_user
 import random
+from typing import List
 
 router = APIRouter()
 
@@ -16,6 +17,13 @@ def random_coordinate():
         'latitude': random.uniform(-90, 90),
         'longitude': random.uniform(-180, 180)
     }
+
+@router.get("", response_model=List[MissileResponse])
+async def get_missiles(db: Session = Depends(get_db)):
+    """Get all missiles"""
+    result = await db.execute(select(Missile))
+    missiles = result.scalars().all()
+    return missiles
 
 @router.post("/launch")
 async def launch_missile(

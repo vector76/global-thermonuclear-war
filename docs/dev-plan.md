@@ -205,13 +205,13 @@ Tests:
 
 ## Phase 3: Basic Missile Launch
 - [x] City database CSV implementation
-- Simple target string parsing
+- [x] Simple target string parsing
 - Basic missile launch endpoint
 - [x] Missile database tables
 - [x] Minimal frontend map display
 Tests:
-- City lookup works
-- Can parse coordinates
+- [x] City lookup works
+- [x] Can parse coordinates
 - [x] Can store launch records
 - Map displays with basic markers
 

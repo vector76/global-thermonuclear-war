@@ -179,4 +179,46 @@
 
 .coordinate-grid-toggle input {
   margin-right: 8px;
+}
+
+.missile-layer {
+  pointer-events: none;
+  overflow: visible !important; /* Allow rendering outside SVG boundaries */
+}
+
+.missile-layer path {
+  overflow: visible !important; /* Ensure paths can extend beyond boundaries */
+}
+
+.loading-indicator {
+  font-size: 0.8em;
+  color: #666;
+  font-style: italic;
+}
+
+.error-indicator {
+  font-size: 0.8em;
+  color: #f44;
+  font-style: italic;
+}
+
+.missile-count {
+  font-size: 0.8em;
+  color: #0f0;
+  margin-left: 5px;
+}
+
+/* Coordinates display in the lower right corner */
+.coordinates-display {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: monospace;
+  z-index: 10;
+  pointer-events: none; /* Ensure it doesn't interfere with mouse events */
 } 

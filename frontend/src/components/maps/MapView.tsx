@@ -10,7 +10,9 @@ import {
   ProjectionConfig, 
   ConicProjectionConfig,
   PolarProjectionConfig,
-  MissileTrajectory 
+  MissileTrajectory,
+  ProjectedCoordinates,
+  Coordinates
 } from '../../types';
 import MissileLayer from './MissileLayer';
 import CoordinateGridLayer from './CoordinateGridLayer';
@@ -54,6 +56,8 @@ const MapView = ({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mapFile, setMapFile] = useState('');
+  // Add state for mouse coordinates
+  const [mouseCoordinates, setMouseCoordinates] = useState<Coordinates | null>(null);
 
   useEffect(() => {
     // Determine which map file to load
@@ -183,6 +187,32 @@ const MapView = ({
       });
   }, [projectionType, config, svgContent]);
 
+  // Handle mouse movement to track coordinates
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!projection) return;
+    
+    // Get the bounding rectangle of the map container
+    const rect = event.currentTarget.getBoundingClientRect();
+    
+    // Calculate the relative position within the map
+    const x = (event.clientX - rect.left) / rect.width * config.width;
+    const y = (event.clientY - rect.top) / rect.height * config.height;
+    
+    // Convert screen coordinates to lat/long using the projection
+    try {
+      const coords = projection.unproject({ x, y });
+      setMouseCoordinates(coords);
+    } catch (error) {
+      // If unproject fails (e.g., outside valid range), clear coordinates
+      setMouseCoordinates(null);
+    }
+  };
+
+  // Handle mouse leave to clear coordinates
+  const handleMouseLeave = () => {
+    setMouseCoordinates(null);
+  };
+
   if (!projection) {
     return <div>Loading projection...</div>;
   }
@@ -202,7 +232,11 @@ const MapView = ({
   }
 
   return (
-    <div className={`map-view ${className}`}>
+    <div 
+      className={`map-view ${className}`}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
       {/* Base map */}
       <div 
         className="map-background"
@@ -224,6 +258,13 @@ const MapView = ({
         width={config.width}
         height={config.height}
       />
+
+      {/* Coordinates display */}
+      {mouseCoordinates && (
+        <div className="coordinates-display">
+          {mouseCoordinates.latitude.toFixed(2)}°, {mouseCoordinates.longitude.toFixed(2)}°
+        </div>
+      )}
     </div>
   );
 };

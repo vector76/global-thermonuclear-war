@@ -1,6 +1,7 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import axios from 'axios';
 import cityLookup from '../utils/cityLookup';
+import { useMissiles } from '../contexts/MissileContext';
 
 interface LaunchFormProps {
   isAuthenticated: boolean;
@@ -16,6 +17,7 @@ export default function LaunchForm({ isAuthenticated, isAdmin = false }: LaunchF
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [lookupResult, setLookupResult] = useState<string>('');
+  const { refreshMissiles } = useMissiles();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -41,6 +43,9 @@ export default function LaunchForm({ isAuthenticated, isAdmin = false }: LaunchF
       
       setTargetString('');
       setSuccess(`Missile launched successfully targeting ${target.name || `${target.latitude}, ${target.longitude}`}`);
+      
+      // Refresh the missile list after successful launch
+      await refreshMissiles();
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {

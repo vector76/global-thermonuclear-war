@@ -11,8 +11,10 @@ export interface ProjectedCoordinates {
 export interface MissileTrajectory {
   id: string;
   points: Coordinates[];  // Sequence of lat/long pairs
-  status: 'in-flight' | 'impacted';
-  impactPoint?: Coordinates;  // Present when status is 'impacted'
+  launchPoint: Coordinates;
+  targetPoint: Coordinates;
+  launchTime: Date;
+  impactTime: Date;
 }
 
 export interface ProjectionConfig {
