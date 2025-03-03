@@ -68,11 +68,6 @@
   stroke-linejoin: round !important;
 }
 
-/* Hover effect for all countries */
-.map-container .map-background svg path:hover {
-  fill: #202020 !important;  /* Slightly lighter gray on hover */
-}
-
 /* Map navigation styles */
 .map-navigation {
   position: absolute;
