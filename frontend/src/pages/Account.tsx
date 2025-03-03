@@ -10,16 +10,37 @@ interface ApiKey {
   is_revoked: boolean;
 }
 
+interface UserProfile {
+  email: string;
+  oauth_provider: string;
+}
+
 export default function Account() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [newKeyName, setNewKeyName] = useState('');
   const [newKey, setNewKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchApiKeys();
+    fetchUserProfile();
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('/api/v1/auth/me');
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+      const data = await response.json();
+      setUserProfile(data);
+    } catch (err) {
+      setError('Failed to load user profile');
+      console.error(err);
+    }
+  };
 
   const fetchApiKeys = async () => {
     try {
@@ -89,6 +110,16 @@ export default function Account() {
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 max-w-2xl mx-auto">
             {error}
+          </div>
+        )}
+
+        {userProfile && (
+          <div className="bg-gray-900 rounded-lg p-6 mb-8">
+            <h2 className="text-2xl font-semibold mb-4 text-white text-center">Profile Information</h2>
+            <div className="flex flex-col items-center text-white">
+              <div>Email: {userProfile.email}</div>
+              <div>Login Provider: {userProfile.oauth_provider}</div>
+            </div>
           </div>
         )}
 

@@ -28,7 +28,7 @@ function PrivacyPolicy(): React.ReactElement {
       <section>
         <h2>3. Data Sharing</h2>
         <p>All missile launches and impacts are visible to other users.</p>
-        <p>We do not share your email or OAuth information with other users.</p>
+        <p>We do not share your email or OAuth information with other users or with any other party.</p>
       </section>
     </div>
   );

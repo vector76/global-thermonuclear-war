@@ -26,11 +26,10 @@ function Navigation({ isAuthenticated, userEmail, isAdmin }: NavigationProps): R
     <nav className="main-nav">
       <ul>
         <li><Link to="/">Home</Link></li>
+        <li><Link to="/api-docs">API Docs</Link></li>
         {isAuthenticated ? (
           <>
-            <li><span className="user-email">{userEmail}</span></li>
             <li><Link to="/account">Account</Link></li>
-            <li><Link to="/api-docs">API Docs</Link></li>
             <li><button onClick={handleLogout}>Logout</button></li>
             {isAdmin && <li><Link to="/admin">Admin</Link></li>}
           </>

@@ -78,11 +78,7 @@ function App() {
                 />
                 <Route 
                   path="/api-docs" 
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated}>
-                      <ApiDocs />
-                    </ProtectedRoute>
-                  } 
+                  element={<ApiDocs />}
                 />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<Terms />} />

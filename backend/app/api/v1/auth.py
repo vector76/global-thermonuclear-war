@@ -111,7 +111,8 @@ async def get_current_user(
             
         return {
             "email": user.email,
-            "is_admin": user.is_admin
+            "is_admin": user.is_admin,
+            "oauth_provider": user.oauth_provider
         }
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid session") 
