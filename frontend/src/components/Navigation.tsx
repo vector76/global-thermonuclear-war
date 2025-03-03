@@ -15,7 +15,7 @@ function Navigation({ isAuthenticated, userEmail, isAdmin }: NavigationProps): R
         credentials: 'include'
       });
       if (response.ok) {
-        window.location.reload();  // Refresh to clear state
+        window.location.href = '/';  // Redirect to home page instead of reloading
       }
     } catch (error) {
       console.error('Logout failed:', error);
@@ -29,6 +29,7 @@ function Navigation({ isAuthenticated, userEmail, isAdmin }: NavigationProps): R
         {isAuthenticated ? (
           <>
             <li><span className="user-email">{userEmail}</span></li>
+            <li><Link to="/account">Account</Link></li>
             <li><Link to="/api-docs">API Docs</Link></li>
             <li><button onClick={handleLogout}>Logout</button></li>
             {isAdmin && <li><Link to="/admin">Admin</Link></li>}

@@ -30,7 +30,7 @@ export const IMPACT_DURATION_MS = 60 * 60 * 1000; // 60 minutes
  */
 export const fetchMissiles = async (): Promise<MissileState[]> => {
   try {
-    const response = await axios.get<MissileData[]>('/api/v1/missiles');
+    const response = await axios.get<MissileData[]>('/api/internal/missiles');
     
     return response.data.map(missile => {
       // Parse date strings as UTC

@@ -206,38 +206,27 @@ Tests:
 ## Phase 3: Basic Missile Launch
 - [x] City database CSV implementation
 - [x] Simple target string parsing
-- Basic missile launch endpoint
+- [x] Basic missile launch endpoint
 - [x] Missile database tables
 - [x] Minimal frontend map display
 Tests:
 - [x] City lookup works
 - [x] Can parse coordinates
 - [x] Can store launch records
-- Map displays with basic markers
+- [x] Map displays with basic markers
 
 ## Phase 4: Trajectory Visualization
-- Client-side trajectory calculation
-- Basic missile path rendering
-- Impact time calculation
-- UTC time handling
+- [x] Client-side trajectory calculation
+- [x] Basic missile path rendering
+- ~~Impact time calculation~~
+- [x] UTC time handling
 Tests:
-- Paths render correctly
-- Times convert properly
-- Missiles "move" along paths
-- Impact times recorded
+- [x] Paths render correctly
+- [x] Times convert properly
+- [x] Missiles "move" along paths
+- ~~Impact times recorded~~
 
-## Phase 5: Launch Site Selection
-- Launch location logic
-- Submarine launch positions
-- Strategic site database
-- Plausible source/target matching
-Tests:
-- Launch sites are plausible
-- Submarine launches work
-- Strategic sites available
-- Source/target relationships valid
-
-## Phase 6: API and Limits
+## Phase 5: API and Limits
 - API key generation
 - Launch limits implementation
 - System-wide missile cap
@@ -247,6 +236,17 @@ Tests:
 - Limits enforced
 - Cap prevents excess launches
 - API docs are accurate
+
+## Phase 6: Launch Site Selection
+- Launch location logic
+- Submarine launch positions
+- Strategic site database
+- Plausible source/target matching
+Tests:
+- Launch sites are plausible
+- Submarine launches work
+- Strategic sites available
+- Source/target relationships valid
 
 ## Phase 7: Enhanced Features
 - GitHub OAuth addition

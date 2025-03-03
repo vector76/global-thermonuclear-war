@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -8,6 +8,7 @@ import Admin from './pages/Admin';
 import ApiDocs from './pages/ApiDocs';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
+import Account from './pages/Account';
 import MapTest from './components/MapTest';
 import { MissileProvider } from './contexts/MissileContext';
 import { CoordinateProvider } from './contexts/CoordinateContext';
@@ -62,20 +63,37 @@ function App() {
                 <Route 
                   path="/admin" 
                   element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} isAdmin={isAdmin}>
+                    <ProtectedRoute isAuthenticated={isAuthenticated} isAdmin={isAdmin} requireAdmin={true}>
                       <Admin />
                     </ProtectedRoute>
                   } 
                 />
-                <Route path="/api-docs" element={<ApiDocs />} />
+                <Route 
+                  path="/account" 
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated}>
+                      <Account />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/api-docs" 
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated}>
+                      <ApiDocs />
+                    </ProtectedRoute>
+                  } 
+                />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/map-test" element={<MapTest />} />
+                {/* Catch-all route for 404s */}
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
             <footer>
               <nav>
-                <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a>
+                <Link to="/privacy">Privacy Policy</Link> | <Link to="/terms">Terms of Service</Link>
               </nav>
             </footer>
           </div>

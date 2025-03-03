@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, Boolean, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import relationship
 from .base import TimeStampedBase
 
 class User(TimeStampedBase):
@@ -12,6 +13,9 @@ class User(TimeStampedBase):
     is_admin = Column(Boolean, default=False)
     daily_launch_limit = Column(Integer, default=10)
     concurrent_missile_limit = Column(Integer, default=3)
+
+    # Relationships
+    api_keys = relationship("ApiKey", back_populates="user", cascade="all, delete-orphan")
 
     @classmethod
     async def get_by_oauth(
