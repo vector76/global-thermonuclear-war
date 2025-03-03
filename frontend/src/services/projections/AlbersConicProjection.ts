@@ -46,7 +46,6 @@ export class AlbersConicProjection extends BaseProjection {
     this.customScaleFactor = scaleFactor;
     this.offsetX = offsetX;
     this.offsetY = offsetY;
-    console.log(`Set custom scale: ${scaleFactor}, offsets: (${offsetX}, ${offsetY})`);
   }
 
   project(coords: Coordinates): ProjectedCoordinates {

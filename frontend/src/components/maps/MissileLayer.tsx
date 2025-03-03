@@ -14,9 +14,6 @@ const MissileLayer = ({
   width,
   height
 }: MissileLayerProps) => {
-  // Add debug mode state that can be toggled but default to false and don't expose UI for it
-  const [isDebugMode] = React.useState<boolean>(false);
-  
   // State to track current time for missile position calculation
   const [currentTime, setCurrentTime] = React.useState<number>(Date.now());
   
@@ -576,7 +573,7 @@ const MissileLayer = ({
   let impactRadius = baseImpactRadius;
 
   return (
-    <>
+    <div>
       <svg 
         className="missile-layer" 
         style={{ 
@@ -592,20 +589,6 @@ const MissileLayer = ({
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="xMidYMid meet"
       >
-        {/* Debug information */}
-        {isDebugMode && (
-          <g>
-            <text x="10" y="20" fontSize="12" fill="white" stroke="black" strokeWidth="0.5" paintOrder="stroke">
-              Map Type: {currentMapType}
-            </text>
-            <text x="10" y="40" fontSize="12" fill="white" stroke="black" strokeWidth="0.5" paintOrder="stroke">
-              Base Line Width: {baseLineWidth}px
-            </text>
-            <text x="10" y="60" fontSize="12" fill="white" stroke="black" strokeWidth="0.5" paintOrder="stroke">
-              Impact Radius: {baseImpactRadius}px
-            </text>
-          </g>
-        )}
         {trajectories.map(trajectory => {
           // Parse launch and impact times
           let launchTime: number;
@@ -631,9 +614,6 @@ const MissileLayer = ({
           // World maps typically have a 2:1 aspect ratio and width around 360
           // US map has width 720 and height 360, so it also has a 2:1 ratio but is larger
           const isWorldMap = Math.abs(width / height - 2) < 0.5;
-          
-          // For debugging: Project all points directly without extrapolation
-          const rawProjectedPoints = allPoints.map(projectCoordinates);
           
           // Process points to handle off-map segments
           const processedPoints = processTrajectoryPoints(allPoints, isWorldMap);
@@ -706,18 +686,14 @@ const MissileLayer = ({
             
             // Only render if the missile is within the visible map area
             if (isPointVisible(projectedMissile)) {
-              // Render a smaller, more transparent marker in debug mode
-              const markerSize = isDebugMode ? 4 : 8;
-              const markerOpacity = isDebugMode ? 0.5 : 0.8;
-              
               missileMarker = (
                 <circle
                   cx={projectedMissile.x}
                   cy={projectedMissile.y}
-                  r={markerSize}
+                  r={8}
                   fill={timeBasedStatus === 'PENDING' ? 'blue' : 
                         timeBasedStatus === 'IMPACT' ? 'red' : 'gray'}
-                  opacity={markerOpacity}
+                  opacity={0.8}
                   stroke="white"
                   strokeWidth="1"
                 />
@@ -737,34 +713,6 @@ const MissileLayer = ({
                 strokeLinejoin="round"
                 strokeDasharray={lineDash}
               />
-              
-              {/* DEBUG: Show all raw projected points */}
-              {isDebugMode && rawProjectedPoints.map((point, i) => 
-                isPointValid(point) && (
-                  <circle
-                    key={`raw-${i}`}
-                    cx={point.x}
-                    cy={point.y}
-                    r="1"
-                    fill={i % 10 === 0 ? "yellow" : "white"}
-                    opacity={0.5}
-                  />
-                )
-              )}
-              
-              {/* DEBUG: Show all processed points */}
-              {isDebugMode && processedPoints.map((point, i) => 
-                point.x !== -999 && point.y !== -999 && (
-                  <circle
-                    key={`proc-${i}`}
-                    cx={point.x}
-                    cy={point.y}
-                    r="1.5"
-                    fill="magenta"
-                    opacity={0.7}
-                  />
-                )
-              )}
               
               {/* Render launch point if valid - only for ACTIVE missiles as a red outline circle */}
               {isPointValid(projectedLaunch) && timeBasedStatus === 'ACTIVE' && (
@@ -795,21 +743,6 @@ const MissileLayer = ({
                 />
               )}
               
-              {/* Debug info */}
-              {isDebugMode && missilePosition && (
-                <text
-                  x={projectCoordinates(missilePosition).x + 8}
-                  y={projectCoordinates(missilePosition).y - 8}
-                  fontSize="10"
-                  fill="white"
-                  stroke="black"
-                  strokeWidth="0.5"
-                  paintOrder="stroke"
-                >
-                  {trajectory.id}: {timeBasedStatus}
-                </text>
-              )}
-              
               {/* Render current missile position for ACTIVE missiles */}
               {timeBasedStatus === 'ACTIVE' && missilePosition && (
                 <g>
@@ -838,26 +771,13 @@ const MissileLayer = ({
                 </g>
               )}
               
-              {/* Render missile position marker */}
+              {/* Render the missile marker if we have one */}
               {missileMarker}
             </g>
           );
         })}
-        
-        {/* Add animation keyframes for pulse effect */}
-        <defs>
-          <style>
-            {`
-              @keyframes pulse {
-                0% { opacity: 0.9; stroke-width: 1; }
-                50% { opacity: 0.5; stroke-width: 1.5; }
-                100% { opacity: 0.9; stroke-width: 1; }
-              }
-            `}
-          </style>
-        </defs>
       </svg>
-    </>
+    </div>
   );
 };
 

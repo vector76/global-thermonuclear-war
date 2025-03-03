@@ -97,7 +97,6 @@ const MapView = ({
         const mapBaseName = mapFileName.split('/').pop() || '';
         if (mapBaseName in MAP_SCALE_OFFSETS) {
           const { scaleFactor, offsetX, offsetY } = MAP_SCALE_OFFSETS[mapBaseName as keyof typeof MAP_SCALE_OFFSETS];
-          console.log(`Applying default scale: ${scaleFactor}, offsets: (${offsetX}, ${offsetY}) for ${mapBaseName}`);
           albersProj.setCustomScaleAndOffset(scaleFactor, offsetX, offsetY);
         }
         
@@ -124,8 +123,6 @@ const MapView = ({
     setIsLoading(true);
     setError(null);
     
-    console.log(`MapView: Fetching map: ${mapFileName}`);
-    
     fetch(mapFileName)
       .then(response => {
         if (!response.ok) {
@@ -134,8 +131,6 @@ const MapView = ({
         return response.text();
       })
       .then(content => {
-        console.log(`MapView: Received SVG content, length=${content.length}`);
-        
         if (content.length === 0) {
           throw new Error('Received empty SVG content');
         }
@@ -155,7 +150,6 @@ const MapView = ({
           const offsetX = parseFloat(offsetXMatch[1]);
           const offsetY = parseFloat(offsetYMatch[1]);
           
-          console.log(`Found embedded scale: ${scaleFactor}, offsets: (${offsetX}, ${offsetY})`);
           projection.setCustomScaleAndOffset(scaleFactor, offsetX, offsetY);
           
           // Update the default values for future use
@@ -177,14 +171,11 @@ const MapView = ({
           `<svg viewBox="${originalViewBox}"`
         );
         
-        console.log(`MapView: Processed SVG content, length=${cleanedContent.length}`);
-        
         setLoadedSvgContent(cleanedContent);
         setError(null);
         setIsLoading(false);
       })
       .catch(error => {
-        console.error(`Error loading map:`, error);
         setError(error.message || 'Failed to load map');
         setIsLoading(false);
       });
@@ -232,9 +223,6 @@ const MapView = ({
       const coords = projection.unproject({ x, y });
       // Update the coordinate context with the clicked coordinates
       setSelectedCoordinates(coords);
-      
-      // Visual feedback for click (optional)
-      console.log(`Map clicked at: ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
     } catch (error) {
       console.error('Error unprojecting coordinates:', error);
     }

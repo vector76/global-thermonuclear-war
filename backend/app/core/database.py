@@ -8,7 +8,7 @@ Base = declarative_base()
 # Create async SQLite engine
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=True,  # Set to False in production
+    echo=settings.DEBUG,  # Only enable SQL logging in debug mode
 )
 
 # Create async session factory
