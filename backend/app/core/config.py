@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
     JWT_SECRET: str
+    REDIRECT_URI: str = "http://localhost:5200/api/v1/auth/google/callback"
 
     class Config:
         case_sensitive = True

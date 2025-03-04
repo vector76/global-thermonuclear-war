@@ -12,7 +12,7 @@ def get_google_oauth_client():
             "https://www.googleapis.com/auth/userinfo.email",
             "https://www.googleapis.com/auth/userinfo.profile",
         ],
-        redirect_uri="http://localhost:5200/api/v1/auth/google/callback"
+        redirect_uri=settings.REDIRECT_URI
     )
     return oauth
 
