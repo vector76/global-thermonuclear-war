@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     allowedHosts: [
+      'www.global-thermonuclear-war.com', // Add your domain here
       'global-thermonuclear-war.com', // Add your domain here
       'localhost', // You can also keep localhost if needed
     ],
