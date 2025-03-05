@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from typing import List
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
@@ -12,6 +13,10 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str
     JWT_SECRET: str
     REDIRECT_URI: str = "http://localhost:5200/api/v1/auth/google/callback"
+    
+    # CORS settings
+    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
+    BASE_URL: str = "http://localhost:5200"  # Used for constructing redirect URIs
 
     class Config:
         case_sensitive = True
