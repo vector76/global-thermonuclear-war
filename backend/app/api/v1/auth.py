@@ -74,7 +74,7 @@ async def google_callback(
         httponly=True,
         secure=True,  # Set to True in production
         samesite="lax",
-        max_age=3600  # 1 hour
+        max_age=259200  # Changed from 86400 (24 hours) to 259200 (72 hours)
     )
     response.headers["Location"] = f"{settings.BASE_URL}/"
     response.status_code = 307  # Temporary redirect

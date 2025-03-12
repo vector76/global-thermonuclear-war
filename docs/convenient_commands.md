@@ -27,3 +27,13 @@ Launch the frontend:
 cd frontend
 npm run dev
 ```
+
+To find a background node process and kill it:
+```
+tasklist /FI "IMAGENAME eq node.exe"
+```
+
+Then (replace 33416 with actual process ID)
+```
+taskkill /PID 33416 /F
+```

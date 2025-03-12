@@ -7,6 +7,7 @@ from app.models.missile import MissileCreate, MissileResponse, Missile
 from app.models.config import Configuration
 from app.crud.missile import create_missile
 from app.api.deps import CurrentUserAnyAuth
+from app.core.trajectory import calculate_launch_point
 import random
 from typing import Dict, Union
 
@@ -22,10 +23,10 @@ def random_coordinate():
 async def can_launch(
     current_user: CurrentUserAnyAuth,
     db: Session = Depends(get_db)
-) -> Dict[str, Union[bool, str | None]]:
+) -> Dict[str, Union[bool, str | None, int]]:
     """Check if a missile launch would succeed without actually launching.
     Only checks rate limits (concurrent missiles and daily limits).
-    Returns true/false and a reason if false.
+    Returns true/false, a reason if false, and number of allowed launches remaining.
     
     This endpoint accepts both API key and session authentication."""
     
@@ -36,12 +37,7 @@ async def can_launch(
         
         # Check concurrent missiles limit
         active_count = await Missile.count_active_for_user(db, current_user.id)
-        if active_count >= max_concurrent:
-            return {
-                "can_launch": False,
-                "reason": f"Maximum {max_concurrent} active missiles allowed per user. "
-                         f"Currently have {active_count} in flight."
-            }
+        concurrent_remaining = max_concurrent - active_count
 
         # Check daily limit
         today_start = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -51,21 +47,37 @@ async def can_launch(
                 Missile.launch_time >= today_start
             )
         )
-        if daily_count.scalar_one() >= max_per_day:
+        daily_remaining = max_per_day - daily_count.scalar_one()
+
+        # Calculate number allowed (minimum of remaining daily and concurrent limits)
+        num_allowed = max(0, min(concurrent_remaining, daily_remaining))
+
+        if concurrent_remaining <= 0:
             return {
                 "can_launch": False,
-                "reason": f"Maximum {max_per_day} missiles allowed per day"
+                "reason": f"Maximum {max_concurrent} active missiles allowed per user. "
+                         f"Currently have {active_count} in flight.",
+                "num_allowed": 0
+            }
+
+        if daily_remaining <= 0:
+            return {
+                "can_launch": False,
+                "reason": f"Maximum {max_per_day} missiles allowed per day",
+                "num_allowed": 0
             }
 
         # All checks passed
         return {
             "can_launch": True,
-            "reason": None
+            "reason": None,
+            "num_allowed": num_allowed
         }
     except Exception as e:
         return {
             "can_launch": False,
-            "reason": f"Internal error: {str(e)}"
+            "reason": f"Internal error: {str(e)}",
+            "num_allowed": 0
         }
 
 @router.post("/launch", response_model=MissileResponse)
@@ -109,19 +121,19 @@ async def launch_missile(
     if not (-90 <= target_latitude <= 90) or not (-180 <= target_longitude <= 180):
         raise HTTPException(status_code=400, detail="Invalid coordinates")
 
-    launch_pos = random_coordinate()
+    # Calculate launch point and impact time
     launch_time = datetime.now(UTC)
-    impact_time = launch_time + timedelta(minutes=15)
+    launch_result = calculate_launch_point(target_latitude, target_longitude, launch_time)
 
     missile = MissileCreate(
         user_id=current_user.id,
-        launch_latitude=launch_pos['latitude'],
-        launch_longitude=launch_pos['longitude'],
+        launch_latitude=launch_result["launch_latitude"],
+        launch_longitude=launch_result["launch_longitude"],
         target_latitude=target_latitude,
         target_longitude=target_longitude,
         target_string=f"{target_latitude},{target_longitude}",
         launch_time=launch_time,
-        impact_time=impact_time
+        impact_time=launch_result["impact_time"]
     )
 
     print("Creating missile:", missile)

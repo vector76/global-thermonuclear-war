@@ -33,17 +33,44 @@ const MissileLayer = ({
   
   // Function to determine missile status based on time
   const determineMissileStatus = (launchTime: number, impactTime: number, currentTime: number): 'PENDING' | 'ACTIVE' | 'IMPACT' | 'EXPIRED' => {
-    // Define how long a missile stays in IMPACT state (60 minutes)
-    const IMPACT_DURATION_MS = 60 * 60 * 1000;
+    // Define durations for each phase after impact
+    const FULL_OPACITY_DURATION_MS = 24 * 60 * 60 * 1000;     // 24 hours
+    const FADE_TO_HALF_DURATION_MS = 24 * 60 * 60 * 1000;     // Next 24 hours
+    const FADE_TO_ZERO_DURATION_MS = 72 * 60 * 60 * 1000;     // Final 72 hours
     
     if (currentTime < launchTime) {
       return 'PENDING';
     } else if (currentTime >= launchTime && currentTime <= impactTime) {
       return 'ACTIVE';
-    } else if (currentTime > impactTime && currentTime <= impactTime + IMPACT_DURATION_MS) {
+    } else if (currentTime > impactTime && currentTime <= impactTime + FULL_OPACITY_DURATION_MS + FADE_TO_HALF_DURATION_MS + FADE_TO_ZERO_DURATION_MS) {
       return 'IMPACT';
     } else {
       return 'EXPIRED';
+    }
+  };
+
+  // Function to calculate opacity for impacted missiles
+  const calculateImpactOpacity = (impactTime: number, currentTime: number): number => {
+    const FULL_OPACITY_DURATION_MS = 24 * 60 * 60 * 1000;     // 24 hours
+    const FADE_TO_HALF_DURATION_MS = 24 * 60 * 60 * 1000;     // Next 24 hours
+    const FADE_TO_ZERO_DURATION_MS = 72 * 60 * 60 * 1000;     // Final 72 hours
+    
+    const timeSinceImpact = currentTime - impactTime;
+    
+    if (timeSinceImpact <= FULL_OPACITY_DURATION_MS) {
+      // First 24 hours: full opacity (1.0)
+      return 1.0;
+    } else if (timeSinceImpact <= FULL_OPACITY_DURATION_MS + FADE_TO_HALF_DURATION_MS) {
+      // Next 24 hours: fade from 1.0 to 0.5
+      const fadeProgress = (timeSinceImpact - FULL_OPACITY_DURATION_MS) / FADE_TO_HALF_DURATION_MS;
+      return 1.0 - (fadeProgress * 0.5); // Linear fade from 1.0 to 0.5
+    } else if (timeSinceImpact <= FULL_OPACITY_DURATION_MS + FADE_TO_HALF_DURATION_MS + FADE_TO_ZERO_DURATION_MS) {
+      // Final 72 hours: fade from 0.5 to 0.0
+      const fadeProgress = (timeSinceImpact - FULL_OPACITY_DURATION_MS - FADE_TO_HALF_DURATION_MS) / FADE_TO_ZERO_DURATION_MS;
+      return 0.5 * (1 - fadeProgress); // Linear fade from 0.5 to 0.0
+    } else {
+      // After all durations: fully transparent
+      return 0;
     }
   };
 
@@ -550,17 +577,17 @@ const MissileLayer = ({
   // Define predefined sizes for each map type
   const mapSizes = {
     world: {
-      baseLineWidth: 1,
+      baseLineWidth: 0.67,
       baseImpactRadius: 2,
       launchPointRadius: 4
     },
     us: {
-      baseLineWidth: 3,
+      baseLineWidth: 2,
       baseImpactRadius: 12,
       launchPointRadius: 12
     },
     russia: {
-      baseLineWidth: 3,
+      baseLineWidth: 2,
       baseImpactRadius: 10,
       launchPointRadius: 10
     }
@@ -634,18 +661,17 @@ const MissileLayer = ({
               lineWidth = baseLineWidth * 0.5; // Thinner line for pending
               break;
             case 'ACTIVE':
-              lineColor = 'rgba(200, 200, 200, 0.6)'; // Light gray for active
+              lineColor = 'rgba(255, 255, 255, 0.8)'; // White for active
               lineWidth = baseLineWidth; // Normal width for active
-              lineDash = '5,5'; // Dashed line for active
               break;
-            case 'IMPACT':
-              lineColor = 'rgba(255, 255, 255, 0.8)'; // White for impact
+            case 'IMPACT': {
+              const opacity = calculateImpactOpacity(impactTime, currentTime);
+              lineColor = `rgba(255, 255, 255, ${opacity})`; // White with calculated opacity
               lineWidth = baseLineWidth; // Normal width for impact
               break;
+            }
             case 'EXPIRED':
-              lineColor = 'rgba(128, 128, 128, 0.3)'; // More transparent gray for expired
-              lineWidth = baseLineWidth * 0.5; // Thinner line for expired
-              break;
+              return null; // Don't render expired missiles at all
           }
 
           // Create path data from processed points, handling path breaks
@@ -679,40 +705,140 @@ const MissileLayer = ({
           // Calculate current missile position
           const missilePosition = calculateCurrentMissilePosition(trajectory, allPoints);
           
-          // Only render missile position marker if we have a valid position
-          let missileMarker = null;
-          if (missilePosition && timeBasedStatus !== 'ACTIVE') { // Don't create marker for ACTIVE missiles
-            const projectedMissile = projectCoordinates(missilePosition);
-            
-            // Only render if the missile is within the visible map area
-            if (isPointVisible(projectedMissile)) {
-              missileMarker = (
-                <circle
-                  cx={projectedMissile.x}
-                  cy={projectedMissile.y}
-                  r={8}
-                  fill={timeBasedStatus === 'PENDING' ? 'blue' : 
-                        timeBasedStatus === 'IMPACT' ? 'red' : 'gray'}
-                  opacity={0.8}
-                  stroke="white"
-                  strokeWidth="1"
-                />
-              );
+          // Project and check if missile is visible on map
+          let missileVisible = false;
+          let projectedMissile: ProjectedCoordinates | undefined;
+          
+          if (timeBasedStatus === 'ACTIVE' && missilePosition) {
+            const projected = projectCoordinates(missilePosition);
+            if (isPointValid(projected)) {
+              projectedMissile = projected;
+              missileVisible = isPointVisible(projected);
+            }
+          }
+
+          // For ACTIVE missiles, create two paths: solid line to missile position, dashed line to target
+          let solidPathData = '';
+          let dashedPathData = '';
+          
+          if (timeBasedStatus === 'ACTIVE' && missilePosition && missileVisible && projectedMissile) {
+            // Only split the path if the missile is actually visible on the map
+            const missileIndex = processedPoints.findIndex((point, i) => {
+              if (i < processedPoints.length - 1) {
+                const nextPoint = processedPoints[i + 1];
+                // Skip break points
+                if (point.x === -999 || nextPoint.x === -999) return false;
+                
+                const dx = nextPoint.x - point.x;
+                const dy = nextPoint.y - point.y;
+                const t = ((projectedMissile.x - point.x) * dx + (projectedMissile.y - point.y) * dy) / (dx * dx + dy * dy);
+                return t >= 0 && t <= 1;
+              }
+              return false;
+            });
+
+            if (missileIndex >= 0) {
+              // Create solid path from start to missile position, handling breaks
+              let currentPath = '';
+              let isNewSegment = true;
+              
+              processedPoints.slice(0, missileIndex + 1).forEach((point, i) => {
+                if (point.x === -999 && point.y === -999) {
+                  isNewSegment = true;
+                } else if (isNewSegment) {
+                  currentPath += `M ${point.x},${point.y}`;
+                  isNewSegment = false;
+                } else {
+                  currentPath += ` L ${point.x},${point.y}`;
+                }
+              });
+              
+              // Add final line to missile position if we're not at a break
+              const lastPoint = processedPoints[missileIndex];
+              if (lastPoint.x !== -999) {
+                currentPath += ` L ${projectedMissile.x},${projectedMissile.y}`;
+              }
+              solidPathData = currentPath;
+
+              // Create dashed path from missile position to end, handling breaks
+              currentPath = '';
+              isNewSegment = true;
+              
+              // Start from the end and work backwards to the missile position
+              const remainingPoints = processedPoints.slice(missileIndex + 1).reverse();
+              if (remainingPoints.length > 0 && remainingPoints[0].x !== -999) {
+                // Start from the last point (target/impact point)
+                currentPath = `M ${remainingPoints[0].x},${remainingPoints[0].y}`;
+              }
+              
+              remainingPoints.slice(1).forEach((point, i) => {
+                if (point.x === -999 && point.y === -999) {
+                  isNewSegment = true;
+                } else if (isNewSegment) {
+                  currentPath += `M ${point.x},${point.y}`;
+                  isNewSegment = false;
+                } else {
+                  currentPath += ` L ${point.x},${point.y}`;
+                }
+              });
+              
+              // Add final line to missile position if we're not at a break
+              if (remainingPoints.length > 0 && remainingPoints[remainingPoints.length - 1].x !== -999) {
+                currentPath += ` L ${projectedMissile.x},${projectedMissile.y}`;
+              }
+              dashedPathData = currentPath;
             }
           }
 
           return (
             <g key={trajectory.id}>
-              {/* Render trajectory path */}
-              <path
-                d={pathData}
-                stroke={lineColor}
-                strokeWidth={lineWidth}
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeDasharray={lineDash}
-              />
+              {timeBasedStatus === 'ACTIVE' && missilePosition ? (
+                missileVisible ? (
+                  <>
+                    {/* Solid line from launch to missile position */}
+                    <path
+                      d={solidPathData}
+                      stroke={lineColor}
+                      strokeWidth={lineWidth}
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    {/* Dashed line from missile position to target */}
+                    <path
+                      d={dashedPathData}
+                      stroke={lineColor}
+                      strokeWidth={lineWidth}
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeDasharray="2,3"
+                    />
+                  </>
+                ) : (
+                  /* Entire path dashed when missile is not visible */
+                  <path
+                    d={pathData}
+                    stroke={lineColor}
+                    strokeWidth={lineWidth}
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeDasharray="2,3"
+                  />
+                )
+              ) : (
+                /* Regular path for non-ACTIVE missiles */
+                <path
+                  d={pathData}
+                  stroke={lineColor}
+                  strokeWidth={lineWidth}
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray={lineDash}
+                />
+              )}
               
               {/* Render launch point if valid - only for ACTIVE missiles as a red outline circle */}
               {isPointValid(projectedLaunch) && timeBasedStatus === 'ACTIVE' && (
@@ -728,23 +854,22 @@ const MissileLayer = ({
               )}
               
               {/* Render target/impact point if valid */}
-              {isPointValid(projectedTarget) && (
+              {isPointValid(projectedTarget) && timeBasedStatus === 'PENDING' || timeBasedStatus === 'IMPACT' && (
                 <circle
                   cx={clippedTarget.x}
                   cy={clippedTarget.y}
                   r={impactRadius}
                   fill={
-                    timeBasedStatus === 'IMPACT' ? 'rgba(255, 255, 255, 0.9)' : // White for impact
-                    timeBasedStatus === 'ACTIVE' ? 'rgba(255, 255, 0, 0.6)' :   // Yellow for active (unchanged)
-                    timeBasedStatus === 'EXPIRED' ? 'rgba(128, 128, 128, 0.5)' : // Gray for expired
-                    'rgba(255, 255, 0, 0.6)' // Default yellow
+                    timeBasedStatus === 'IMPACT' 
+                      ? `rgba(255, 255, 255, ${calculateImpactOpacity(impactTime, currentTime)})` 
+                      : 'rgba(255, 255, 0, 0.6)' // Default yellow for PENDING
                   }
                   opacity={isPointVisible(projectedTarget) ? 1 : 0.3} // Fade if outside visible area
                 />
               )}
               
               {/* Render current missile position for ACTIVE missiles */}
-              {timeBasedStatus === 'ACTIVE' && missilePosition && (
+              {timeBasedStatus === 'ACTIVE' && missilePosition && missileVisible && (
                 <g>
                   {/* Get the projected position */}
                   {(() => {
@@ -760,7 +885,7 @@ const MissileLayer = ({
                         <circle
                           cx={clippedMissile.x}
                           cy={clippedMissile.y}
-                          r={lineWidth} // Match the line width
+                          r={lineWidth * 1.5} // Make dot 1.5x bigger than line width
                           fill="white"
                           opacity={isPointVisible(projectedMissile) ? 0.9 : 0.5} // Fade if outside visible area
                         />
@@ -770,9 +895,6 @@ const MissileLayer = ({
                   })()}
                 </g>
               )}
-              
-              {/* Render the missile marker if we have one */}
-              {missileMarker}
             </g>
           );
         })}

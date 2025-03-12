@@ -17,7 +17,7 @@ def get_google_oauth_client():
     return oauth
 
 def create_access_token(user_id: int) -> str:
-    expire = datetime.now(UTC) + timedelta(hours=1)
+    expire = datetime.now(UTC) + timedelta(hours=72)
     return jwt.encode(
         {
             "sub": str(user_id),

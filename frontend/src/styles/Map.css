@@ -47,23 +47,23 @@
 /* Default path styles for all countries */
 .map-container .map-background svg path {
   fill: #0f0f0f !important;  /* Very dark gray for continents */
-  stroke: #666 !important;  /* Light gray borders */
-  stroke-width: 0.1 !important;  /* Thin borders */
+  stroke: #c0c0c0 !important;  /* Light gray borders */
+  stroke-width: 0.2 !important;  /* Thin borders */
   transition: fill 0.2s ease;
 }
 
 /* United States styling */
 .map-container .map-background svg path.us-path {
-  stroke: rgb(0, 191, 255) !important;
-  stroke-width: 0.8 !important;
+  stroke: rgb(79, 208, 255) !important;
+  stroke-width: 0.5 !important;
   paint-order: stroke fill !important;
   stroke-linejoin: round !important;
 }
 
 /* Russia styling */
 .map-container .map-background svg path.russia-path {
-  stroke: rgb(255, 50, 50) !important;
-  stroke-width: 0.8 !important;
+  stroke: rgb(236, 113, 113) !important;
+  stroke-width: 0.5 !important;
   paint-order: stroke fill !important;
   stroke-linejoin: round !important;
 }
@@ -196,12 +196,6 @@
   font-size: 0.8em;
   color: #f44;
   font-style: italic;
-}
-
-.missile-count {
-  font-size: 0.8em;
-  color: #0f0;
-  margin-left: 5px;
 }
 
 /* Coordinates display in the lower right corner */

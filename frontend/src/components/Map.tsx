@@ -100,6 +100,8 @@ function Map({ isAdmin = false, showCoordinateGrid = false }: MapProps): React.R
       setCurrentMap('world');
     } else if (currentMap === 'russia') {
       setCurrentMap('us');
+    } else if (currentMap === 'world') {
+      setCurrentMap('russia');
     }
   };
 
@@ -108,6 +110,8 @@ function Map({ isAdmin = false, showCoordinateGrid = false }: MapProps): React.R
       setCurrentMap('us');
     } else if (currentMap === 'us') {
       setCurrentMap('russia');
+    } else if (currentMap === 'russia') {
+      setCurrentMap('world');
     }
   };
 
@@ -165,8 +169,7 @@ function Map({ isAdmin = false, showCoordinateGrid = false }: MapProps): React.R
         <button 
           className="map-nav-button prev"
           onClick={handlePrevMap}
-          disabled={currentMap === 'world'}
-          title={currentMap === 'us' ? 'Switch to World Map' : 'Switch to US Map'}
+          title={currentMap === 'world' ? 'Switch to Russia Map' : currentMap === 'us' ? 'Switch to World Map' : 'Switch to US Map'}
         >
           &#8592; {/* Left arrow */}
         </button>
@@ -174,15 +177,11 @@ function Map({ isAdmin = false, showCoordinateGrid = false }: MapProps): React.R
           {getMapTitle()}
           {loading && <span className="loading-indicator"> (Loading...)</span>}
           {error && <span className="error-indicator"> (Error: {error})</span>}
-          {filteredTrajectories.length > 0 && 
-            <span className="missile-count"> ({filteredTrajectories.length} missile{filteredTrajectories.length !== 1 ? 's' : ''})</span>
-          }
         </div>
         <button 
           className="map-nav-button next"
           onClick={handleNextMap}
-          disabled={currentMap === 'russia'}
-          title={currentMap === 'world' ? 'Switch to US Map' : 'Switch to Russia Map'}
+          title={currentMap === 'world' ? 'Switch to US Map' : currentMap === 'us' ? 'Switch to Russia Map' : 'Switch to World Map'}
         >
           &#8594; {/* Right arrow */}
         </button>

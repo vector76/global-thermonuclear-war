@@ -37,10 +37,9 @@ function Login({ isAuthenticated }: LoginProps): React.ReactElement {
   return (
     <div>
       <h1>Login</h1>
-      <p>OAuth login options will appear here</p>
       <div className="placeholder-buttons">
         <button onClick={handleGoogleLogin}>Login with Google</button>
-        <button disabled>Login with GitHub</button>
+        <button disabled>Login with GitHub (coming soon)</button>
       </div>
       {error && <div className="error">{error}</div>}
     </div>
